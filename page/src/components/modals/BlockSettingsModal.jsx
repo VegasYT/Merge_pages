@@ -96,6 +96,74 @@ export default function BlockSettingsModal({ block, template, onClose, onSave })
     );
   }
 
+  // Отдельная обработка для HTML Block
+  if (template?.settings.type === 'html') {
+    return (
+      <div
+        className={`fixed inset-0 bg-black flex items-center justify-center z-50 transition-all duration-300 p-4 ${
+          isVisible ? 'bg-opacity-50' : 'bg-opacity-0'
+        }`}
+        onMouseDown={handleOverlayMouseDown}
+        onClick={handleOverlayClick}
+      >
+        <div
+          className={`bg-white rounded-2xl w-full max-w-4xl max-h-[90vh] overflow-hidden flex flex-col shadow-2xl transition-all duration-300 transform ${
+            isVisible ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-4'
+          }`}
+          onClick={(e) => e.stopPropagation()}
+        >
+          <div className="flex items-center justify-between p-6 border-b bg-gradient-to-r from-blue-50 to-indigo-50">
+            <h2 className="text-2xl font-bold bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">
+              {template?.name}
+            </h2>
+            <button
+              onClick={handleClose}
+              className="text-gray-400 hover:text-gray-600 hover:rotate-90 transition-all duration-300"
+            >
+              <X size={24} />
+            </button>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-6 bg-gradient-to-br from-gray-50 to-blue-50/30">
+            <div className="space-y-4">
+              <label className="block text-sm font-medium text-gray-700 mb-2">
+                HTML код
+              </label>
+              <textarea
+                value={settings.data?.htmlContent || ''}
+                onChange={(e) => handleDataChange('htmlContent', e.target.value)}
+                rows={20}
+                className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-400 resize-none transition-all duration-300 hover:border-gray-300 bg-white shadow-sm font-mono text-sm"
+                placeholder="Введите HTML код..."
+              />
+              <p className="text-sm text-gray-500">
+                Вы можете использовать любой валидный HTML код, включая inline стили и CSS.
+              </p>
+            </div>
+          </div>
+
+          <div className="p-6 border-t flex justify-end gap-4 bg-gradient-to-r from-gray-50 to-blue-50/30">
+            <button
+              onClick={handleClose}
+              className="px-8 py-3 border-2 border-gray-300 rounded-xl hover:bg-white hover:border-gray-400 transition-all duration-300 font-medium text-gray-700 hover:shadow-md transform hover:scale-105"
+            >
+              Отмена
+            </button>
+            <button
+              onClick={() => {
+                onSave(settings);
+                handleClose();
+              }}
+              className="px-8 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white rounded-xl hover:shadow-lg transition-all duration-300 font-medium transform hover:scale-105"
+            >
+              Сохранить
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div
       className={`fixed inset-0 bg-black flex items-center justify-center z-50 p-4 transition-all duration-300 ${

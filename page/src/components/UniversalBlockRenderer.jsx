@@ -2,11 +2,24 @@ import React from 'react';
 import { filterClassesByViewport } from '../utils/styleUtils';
 
 export default function UniversalBlockRenderer({ structure, data, styles, viewportSize }) {
+  // Функция для обработки переносов строк в тексте
+  const formatTextWithLineBreaks = (text) => {
+    if (!text || typeof text !== 'string') return text;
+
+    const lines = text.split('\n');
+    return lines.map((line, index) => (
+      <React.Fragment key={index}>
+        {line}
+        {index < lines.length - 1 && <br />}
+      </React.Fragment>
+    ));
+  };
+
   const renderElement = (element, index = 0, repeatData = null, isRoot = false) => {
     const { type, className = '', styles: elementStylesConfig = {}, children, dataKey, content, repeat, href, src, alt } = element;
 
     const elementStyles = {};
-    
+
     const numericProperties = [
       'width', 'height', 'maxWidth', 'maxHeight', 'minWidth', 'minHeight',
       'padding', 'paddingTop', 'paddingRight', 'paddingBottom', 'paddingLeft',
@@ -78,7 +91,7 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
       case 'div':
         return (
           <div {...props}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
             {children && children.map((child, i) => renderElement(child, i, repeatData, false))}
           </div>
         );
@@ -89,33 +102,41 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
           </div>
         );
       case 'h1':
-        return <h1 {...props}>{textContent}</h1>;
+        return <h1 {...props}>{formatTextWithLineBreaks(textContent)}</h1>;
       case 'h2':
-        return <h2 {...props}>{textContent}</h2>;
+        return <h2 {...props}>{formatTextWithLineBreaks(textContent)}</h2>;
       case 'h3':
-        return <h3 {...props}>{textContent}</h3>;
+        return <h3 {...props}>{formatTextWithLineBreaks(textContent)}</h3>;
       case 'h4':
-        return <h4 {...props}>{textContent}</h4>;
+        return <h4 {...props}>{formatTextWithLineBreaks(textContent)}</h4>;
       case 'h5':
-        return <h5 {...props}>{textContent}</h5>;
+        return <h5 {...props}>{formatTextWithLineBreaks(textContent)}</h5>;
       case 'h6':
-        return <h6 {...props}>{textContent}</h6>;
+        return <h6 {...props}>{formatTextWithLineBreaks(textContent)}</h6>;
       case 'p':
-        return <p {...props}>{textContent}</p>;
+        return <p {...props}>{formatTextWithLineBreaks(textContent)}</p>;
       case 'span':
-        return <span {...props}>{textContent}</span>;
+        return <span {...props}>{formatTextWithLineBreaks(textContent)}</span>;
       case 'a':
         return (
           <a {...props} href={href || data[element.hrefKey] || '#'}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
             {children && children.map((child, i) => renderElement(child, i, repeatData, false))}
           </a>
         );
       case 'img':
+        let imgSrc = src;
+        if (!imgSrc && element.srcKey) {
+          if (repeatData && element.srcKey === '{{current}}') {
+            imgSrc = repeatData;
+          } else {
+            imgSrc = data[element.srcKey] || '';
+          }
+        }
         return (
-          <img 
-            {...props} 
-            src={src || data[element.srcKey] || ''} 
+          <img
+            {...props}
+            src={imgSrc || ''}
             alt={alt || data[element.altKey] || textContent || ''}
           />
         );
@@ -168,7 +189,7 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
       case 'button':
         return (
           <button {...props}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
             {children && children.map((child, i) => renderElement(child, i, repeatData, false))}
           </button>
         );
@@ -187,16 +208,16 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
       case 'li':
         return (
           <li {...props}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
             {children && children.map((child, i) => renderElement(child, i, repeatData, false))}
           </li>
         );
       case 'strong':
-        return <strong {...props}>{textContent}</strong>;
+        return <strong {...props}>{formatTextWithLineBreaks(textContent)}</strong>;
       case 'em':
-        return <em {...props}>{textContent}</em>;
+        return <em {...props}>{formatTextWithLineBreaks(textContent)}</em>;
       case 'small':
-        return <small {...props}>{textContent}</small>;
+        return <small {...props}>{formatTextWithLineBreaks(textContent)}</small>;
       case 'br':
         return <br {...props} />;
       case 'hr':
@@ -204,7 +225,7 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
       case 'label':
         return (
           <label {...props}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
             {children && children.map((child, i) => renderElement(child, i, repeatData, false))}
           </label>
         );
@@ -234,11 +255,11 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
       case 'option':
         return (
           <option {...props} value={element.value || textContent}>
-            {textContent}
+            {formatTextWithLineBreaks(textContent)}
           </option>
         );
       default:
-        return <div {...props}>{textContent}</div>;
+        return <div {...props}>{formatTextWithLineBreaks(textContent)}</div>;
     }
   };
 

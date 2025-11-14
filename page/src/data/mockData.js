@@ -3,7 +3,8 @@
 export const mockCategories = [
   { id: 1, name: 'Заголовки' },
   { id: 2, name: 'Контент' },
-  { id: 3, name: 'Галереи' }
+  { id: 3, name: 'Галереи' },
+  { id: 4, name: 'Кастомные' }
 ];
 
 export const mockBlockTemplates = [
@@ -243,7 +244,12 @@ export const mockBlockTemplates = [
       "image3": "https://images.unsplash.com/photo-1617791160505-6f00504e3519?w=500&h=500&fit=crop",
       "image4": "https://images.unsplash.com/photo-1618556450991-2f1af64e8191?w=500&h=500&fit=crop",
       "image5": "https://images.unsplash.com/photo-1617817546714-e6ae8db0c9d0?w=500&h=500&fit=crop",
-      "image6": "https://images.unsplash.com/photo-1618005198919-d3d4b5a92ead?w=500&h=500&fit=crop"
+      "styles": {
+        "backgroundColor": "#f7fafc",
+        "titleColor": "#1a202c",
+        "descriptionColor": "#4a5568",
+        "cardBorderRadius": 12
+      }
     }
   },
   {
@@ -629,8 +635,342 @@ export const mockBlockTemplates = [
       "stat2": "Завершённых проектов",
       "stat3": "Лет опыта"
     }
+  },
+  {
+    "id": 8,
+    "category_id": 4,
+    "template_name": "HtmlBlock",
+    "name": "HTML блок",
+    "preview_url": "https://via.placeholder.com/300x200/38b2ac/ffffff?text=HTML+Block",
+    "settings": {
+      "type": "html",
+      "editableElements": ["htmlContent"]
+    },
+    "default_data": {
+      "htmlContent": "<div style=\"padding: 40px; text-align: center; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; border-radius: 10px;\">\n  <h2 style=\"margin: 0 0 20px 0; font-size: 32px;\">Кастомный HTML блок</h2>\n  <p style=\"margin: 0; font-size: 18px;\">Здесь вы можете добавить любой HTML код</p>\n</div>"
+    }
   }
 ]
 
+// Моковые данные для зероблока с responsive настройками
+export const mockZeroblock = {
+  // Базовые данные блока
+  block: {
+    id: 1,
+    page_id: 1,
+    block_template_id: null,
+    type: 'zeroblock',
+    position: 0,
+    settings: {},
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+
+  // Зероблок
+  zeroBlock: {
+    id: 1,
+    block_id: 1,
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  },
+
+  // Типы базовых элементов
+  zeroBaseElements: [
+    {
+      id: 1,
+      type_name: 'text',
+      display_name: 'Текст',
+      icon: 'Type',
+      schema: {
+        props: {
+          content: { type: 'textarea', default: 'Текст' },
+          color: { type: 'color', default: '#000000' },
+          fontSize: { type: 'range', min: 12, max: 72, default: 24 },
+          fontWeight: { type: 'select', default: 'normal' }
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      type_name: 'block',
+      display_name: 'Блок',
+      icon: 'Square',
+      schema: {
+        props: {
+          backgroundColor: { type: 'color', default: '#ff740f' }
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      type_name: 'image',
+      display_name: 'Изображение',
+      icon: 'Image',
+      schema: {
+        props: {
+          src: { type: 'upload', default: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?w=400' }
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 4,
+      type_name: 'button',
+      display_name: 'Кнопка',
+      icon: 'MousePointerSquareDashed',
+      schema: {
+        props: {
+          content: { type: 'string', default: 'Кнопка' },
+          backgroundColor: { type: 'color', default: '#ff740f' },
+          color: { type: 'color', default: '#ffffff' }
+        }
+      },
+      created_at: new Date().toISOString()
+    }
+  ],
+
+  // Responsive настройки зероблока (аналог брейкпоинтов)
+  zeroBlockResponsive: [
+    {
+      id: 1,
+      zero_block_id: 1,
+      height: 600,
+      width: 1920,
+      props: { name: 'Desktop', isDefault: true },
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 2,
+      zero_block_id: 1,
+      height: 1024,
+      width: 768,
+      props: { name: 'Tablet' },
+      created_at: new Date().toISOString()
+    },
+    {
+      id: 3,
+      zero_block_id: 1,
+      height: 667,
+      width: 375,
+      props: { name: 'Mobile' },
+      created_at: new Date().toISOString()
+    }
+  ],
+
+  // Слои (элементы) - data используется для других целей, НЕ для props
+  zeroLayers: [
+    {
+      id: 1,
+      zeroblock_id: 1,
+      zero_base_element_id: 1, // text
+      data: {}, // Может содержать метаданные, настройки анимации и т.д.
+      position: 0
+    },
+    {
+      id: 2,
+      zeroblock_id: 1,
+      zero_base_element_id: 2, // block
+      data: {},
+      position: 1
+    },
+    {
+      id: 3,
+      zeroblock_id: 1,
+      zero_base_element_id: 4, // button
+      data: {},
+      position: 2
+    }
+  ],
+
+  // Responsive настройки для каждого слоя - ВСЕ PROPS ЗДЕСЬ!
+  zeroLayerResponsive: [
+    // Desktop (responsive_id: 1) - текст
+    {
+      id: 1,
+      zero_layer_id: 1,
+      zero_block_responsive_id: 1,
+      x: 100,
+      y: 50,
+      width: 600,
+      height: 80,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Добро пожаловать!',
+          color: '#ffffff',
+          fontSize: 48,
+          fontWeight: 'bold'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Tablet (responsive_id: 2) - текст
+    {
+      id: 2,
+      zero_layer_id: 1,
+      zero_block_responsive_id: 2,
+      x: 50,
+      y: 40,
+      width: 400,
+      height: 70,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Добро пожаловать!',
+          color: '#ffffff',
+          fontSize: 36, // меньше шрифт на планшете
+          fontWeight: 'bold'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Mobile (responsive_id: 3) - текст
+    {
+      id: 3,
+      zero_layer_id: 1,
+      zero_block_responsive_id: 3,
+      x: 20,
+      y: 30,
+      width: 335,
+      height: 60,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Привет!', // Другой контент на мобильном
+          color: '#ffffff',
+          fontSize: 28, // еще меньше на мобильном
+          fontWeight: 'bold'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+
+    // Desktop (responsive_id: 1) - блок
+    {
+      id: 4,
+      zero_layer_id: 2,
+      zero_block_responsive_id: 1,
+      x: 0,
+      y: 0,
+      width: 1920,
+      height: 600,
+      direction: 'horizontal',
+      data: {
+        props: {
+          backgroundColor: '#4299e1'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Tablet (responsive_id: 2) - блок
+    {
+      id: 5,
+      zero_layer_id: 2,
+      zero_block_responsive_id: 2,
+      x: 0,
+      y: 0,
+      width: 768,
+      height: 1024,
+      direction: 'vertical',
+      data: {
+        props: {
+          backgroundColor: '#4299e1'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Mobile (responsive_id: 3) - блок
+    {
+      id: 6,
+      zero_layer_id: 2,
+      zero_block_responsive_id: 3,
+      x: 0,
+      y: 0,
+      width: 375,
+      height: 667,
+      direction: 'vertical',
+      data: {
+        props: {
+          backgroundColor: '#4299e1'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+
+    // Desktop (responsive_id: 1) - кнопка
+    {
+      id: 7,
+      zero_layer_id: 3,
+      zero_block_responsive_id: 1,
+      x: 100,
+      y: 200,
+      width: 200,
+      height: 60,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Начать',
+          backgroundColor: '#48bb78',
+          color: '#ffffff'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Tablet (responsive_id: 2) - кнопка
+    {
+      id: 8,
+      zero_layer_id: 3,
+      zero_block_responsive_id: 2,
+      x: 50,
+      y: 150,
+      width: 180,
+      height: 55,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Начать',
+          backgroundColor: '#48bb78',
+          color: '#ffffff'
+        }
+      },
+      created_at: new Date().toISOString()
+    },
+    // Mobile (responsive_id: 3) - кнопка
+    {
+      id: 9,
+      zero_layer_id: 3,
+      zero_block_responsive_id: 3,
+      x: 20,
+      y: 120,
+      width: 335,
+      height: 50,
+      direction: 'horizontal',
+      data: {
+        props: {
+          content: 'Поехали!', // Другой текст на мобильном
+          backgroundColor: '#48bb78',
+          color: '#ffffff'
+        }
+      },
+      created_at: new Date().toISOString()
+    }
+  ]
+};
+
+// Добавляем зероблок в список блоков
 export const mockBlocks = [
+  {
+    id: 1,
+    page_id: 1,
+    block_template_id: null,
+    type: 'zeroblock',
+    position: 0,
+    settings: {
+      zeroblockId: 1 // ссылка на mockZeroblock
+    },
+    created_at: new Date().toISOString(),
+    updated_at: new Date().toISOString()
+  }
 ];

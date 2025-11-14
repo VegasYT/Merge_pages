@@ -41,10 +41,10 @@ export default function App() {
       type: blockTemplate ? 'template' : 'zeroblock',
       position: blocks.length,
       settings: blockTemplate ? {
-        styles: Object.keys(blockTemplate.settings.editableStyles).reduce((acc, key) => {
+        styles: blockTemplate.settings.editableStyles ? Object.keys(blockTemplate.settings.editableStyles).reduce((acc, key) => {
           acc[key] = blockTemplate.settings.editableStyles[key].default;
           return acc;
-        }, {}),
+        }, {}) : {},
         data: { ...blockTemplate.default_data }
       } : {}
     };
@@ -91,8 +91,8 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-gray-100">
-      <Header 
-        viewportSize={viewportSize} 
+      <Header
+        viewportSize={viewportSize}
         onViewportChange={setViewportSize}
         onAddBlockClick={() => setIsAddBlockModalOpen(true)}
       />

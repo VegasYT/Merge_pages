@@ -2,6 +2,7 @@ import React from 'react';
 import { Settings, Trash2, ArrowUp, ArrowDown, Plus } from 'lucide-react';
 import UniversalBlockRenderer from './UniversalBlockRenderer';
 import ZeroBlockPreview from './ZeroBlockPreview';
+import HtmlBlockRenderer from './HtmlBlockRenderer';
 
 // Компонент предпросмотра блока с элементами управления
 export default function BlockPreview({
@@ -71,14 +72,18 @@ export default function BlockPreview({
       )}
 
       {block.type === 'zeroblock' ? (
-        <ZeroBlockPreview viewportSize={viewportSize} />
+        <ZeroBlockPreview block={block} viewportSize={viewportSize} />
       ) : template ? (
-        <UniversalBlockRenderer
-          structure={template.settings.structure}
-          data={block.settings.data || {}}
-          styles={block.settings.styles || {}}
-          viewportSize={viewportSize}
-        />
+        template.settings.type === 'html' ? (
+          <HtmlBlockRenderer htmlContent={block.settings.data?.htmlContent || ''} />
+        ) : (
+          <UniversalBlockRenderer
+            structure={template.settings.structure}
+            data={block.settings.data || {}}
+            styles={block.settings.styles || {}}
+            viewportSize={viewportSize}
+          />
+        )
       ) : null}
 
       {/* Кнопка добавления блока после текущего */}
