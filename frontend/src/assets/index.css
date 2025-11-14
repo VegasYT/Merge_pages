@@ -1,0 +1,132 @@
+@import 'tailwindcss';
+@import 'tw-animate-css';
+
+@import './variables.css';
+@import './theme.css';
+
+@custom-variant dark (&:is(.dark *));
+
+@layer base {
+	* {
+		@apply box-border border-border outline-ring/50;
+	}
+
+	html {
+		@apply scroll-smooth;
+	}
+
+	body {
+		@apply bg-background w-full h-screen overflow-hidden text-foreground;
+	}
+
+	#root {
+		@apply flex flex-col w-full min-w-0 h-full min-h-0 overflow-auto;
+	}
+}
+
+/* Custom styles for auth pages only */
+.auth-page-styles {
+	font-family: var(--font-ui) !important;
+
+	/* Apply custom text sizes from variables.css */
+	& * {
+		font-family: var(--font-ui) !important;
+		list-style: none;
+	}
+
+	input {font-weight: var(--font-weight-body);}
+
+	/* Custom font weights */
+	& .font-label { font-weight: var(--font-weight-label); }
+	& .font-label a { font-weight: var(--font-weight-body); }
+	& .font-body { font-weight: var(--font-weight-body); }
+	& .font-heading { font-weight: var(--font-weight-heading); }
+	& .font-display { font-weight: var(--font-weight-display); }
+
+	/* Custom text sizes */
+	& .text-xs { font-size: var(--text-xs); }
+	& .text-sm { font-size: var(--text-sm); }
+	& .text-base { font-size: var(--text-base); }
+	& .text-lg { font-size: var(--text-lg); }
+	& .text-xl { font-size: var(--text-xl); }
+	& .text-2xl { font-size: var(--text-2xl); }
+	& .text-3xl { font-size: var(--text-3xl); }
+}
+
+/* Keep custom radius for auth pages (from variables.css: --radius: 1.25rem) */
+.auth-page-styles .rounded-sm { border-radius: calc(var(--radius) - 4px); }
+.auth-page-styles .rounded { border-radius: calc(var(--radius) - 2px); }
+.auth-page-styles .rounded-md { border-radius: calc(var(--radius) - 2px); }
+.auth-page-styles .rounded-lg { border-radius: var(--radius); }
+.auth-page-styles .rounded-xl { border-radius: calc(var(--radius) + 4px); }
+.auth-page-styles .rounded-2xl { border-radius: calc(var(--radius) + 8px); }
+.auth-page-styles .rounded-3xl { border-radius: calc(var(--radius) + 12px); }
+
+/* Reset to standard Tailwind v3 border-radius values for standard pages */
+.standard-tailwind-styles .rounded-sm { border-radius: 0.125rem; }
+.standard-tailwind-styles .rounded { border-radius: 0.25rem; }
+.standard-tailwind-styles .rounded-md { border-radius: 0.375rem; }
+.standard-tailwind-styles .rounded-lg { border-radius: 0.5rem; }
+.standard-tailwind-styles .rounded-xl { border-radius: 0.75rem; }
+.standard-tailwind-styles .rounded-2xl { border-radius: 1rem; }
+.standard-tailwind-styles .rounded-3xl { border-radius: 1.5rem; }
+.standard-tailwind-styles .rounded-full { border-radius: 9999px; }
+
+/* Modal Animations */
+@keyframes fadeIn {
+	from {
+		opacity: 0;
+	}
+	to {
+		opacity: 1;
+	}
+}
+
+@keyframes scaleIn {
+	from {
+		opacity: 0;
+		transform: scale(0.95);
+	}
+	to {
+		opacity: 1;
+		transform: scale(1);
+	}
+}
+
+@keyframes slideIn {
+	from {
+		opacity: 0;
+		transform: translateY(-10px);
+	}
+	to {
+		opacity: 1;
+		transform: translateY(0);
+	}
+}
+
+.animate-fadeIn {
+	animation: fadeIn 0.2s ease-out;
+}
+
+.animate-scaleIn {
+	animation: scaleIn 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.animate-slideIn {
+	animation: slideIn 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+/* Spinner animation */
+@keyframes spin {
+	from {
+		transform: rotate(0deg);
+	}
+	to {
+		transform: rotate(360deg);
+	}
+}
+
+.animate-spin {
+	animation: spin 1s linear infinite;
+}
+
