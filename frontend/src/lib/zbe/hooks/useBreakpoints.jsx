@@ -2,9 +2,10 @@ import { useState, useCallback } from "react";
 
 /**
  * Хук для управления брейкпоинтами (responsive design)
+ * @param {Array} initialBreakpoints - начальные брейкпоинты (опционально)
  */
-export function useBreakpoints() {
-  const [breakpoints, setBreakpoints] = useState([
+export function useBreakpoints(initialBreakpoints = null) {
+  const [breakpoints, setBreakpoints] = useState(initialBreakpoints || [
     {
       id: "desktop",
       name: "Desktop",
@@ -29,7 +30,11 @@ export function useBreakpoints() {
     },
   ]);
 
-  const [activeBreakpointId, setActiveBreakpointId] = useState("desktop");
+  const [activeBreakpointId, setActiveBreakpointId] = useState(
+    initialBreakpoints && initialBreakpoints.length > 0
+      ? initialBreakpoints[0].id
+      : "desktop"
+  );
 
   // Получить активный брейкпоинт
   const getActiveBreakpoint = useCallback(() => {
@@ -95,6 +100,7 @@ export function useBreakpoints() {
 
   return {
     breakpoints,
+    setBreakpoints,
     activeBreakpointId,
     getActiveBreakpoint,
     getDefaultBreakpoint,

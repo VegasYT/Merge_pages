@@ -36,6 +36,7 @@ import { useBreakpoints } from "./hooks/useBreakpoints.jsx";
 // Импорт утилит
 import { createElement } from "./utils/elementUtils.jsx";
 import { measureTextSize, generateUniqueName } from "./utils/textUtils.jsx";
+import { convertResponsiveToBreakpoints, convertLayersToElements } from "./utils/dataConverter.jsx";
 
 // Импорт компонентов
 import { SnapLines, SelectionBox, DistanceLines } from "./components/Canvas/index.jsx";
@@ -55,9 +56,15 @@ export default function App({ initialData, onDataChange, onGetData }) {
 
   // Используем кастомные хуки
 
+  // Преобразуем initialData для брейкпоинтов
+  const initialBreakpoints = initialData?.zeroBlockResponsive
+    ? convertResponsiveToBreakpoints(initialData.zeroBlockResponsive)
+    : null;
+
   // Брейкпоинты
   const {
     breakpoints,
+    setBreakpoints,
     activeBreakpointId,
     getActiveBreakpoint,
     getDefaultBreakpoint,
@@ -65,7 +72,7 @@ export default function App({ initialData, onDataChange, onGetData }) {
     updateBreakpoint,
     deleteBreakpoint,
     setActiveBreakpoint,
-  } = useBreakpoints();
+  } = useBreakpoints(initialBreakpoints);
 
   const activeBreakpoint = getActiveBreakpoint();
   const defaultBreakpoint = getDefaultBreakpoint();
@@ -170,6 +177,44 @@ export default function App({ initialData, onDataChange, onGetData }) {
   const containerRef = useRef(null);
   const menuRef = useRef(null);
   const isFirstRender = useRef(true);
+  const isInitialDataLoaded = useRef(false);
+
+  // Загрузка initialData при первом монтировании
+  useEffect(() => {
+    // Загружаем данные только один раз
+    if (isInitialDataLoaded.current) return;
+
+    if (initialData?.zeroLayers && initialData.zeroLayers.length > 0) {
+      console.log('🔄 Loading initial data into ZBE...');
+      console.log('  - Layers:', initialData.zeroLayers.length);
+      console.log('  - Layer Responsive:', initialData.zeroLayerResponsive?.length || 0);
+      console.log('  - Breakpoints:', breakpoints.length);
+
+      try {
+        // Преобразуем layers в элементы ZBE
+        const loadedElements = convertLayersToElements(
+          initialData.zeroLayers,
+          initialData.zeroLayerResponsive || [],
+          initialData.zeroBaseElements || [],
+          breakpoints
+        );
+
+        if (loadedElements.length > 0) {
+          console.log('✅ Loaded elements:', loadedElements.length);
+          setElements(loadedElements);
+        } else {
+          console.warn('⚠️ No elements were loaded from initialData');
+        }
+      } catch (error) {
+        console.error('❌ Error loading initial data:', error);
+      }
+
+      isInitialDataLoaded.current = true;
+    } else {
+      console.log('ℹ️ No initial layers to load');
+      isInitialDataLoaded.current = true;
+    }
+  }, [initialData, breakpoints]);
 
   // Отслеживаем изменения данных и вызываем onDataChange
   useEffect(() => {
