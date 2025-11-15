@@ -119,9 +119,9 @@ const VisualElement = ({
   const voidElements = ['hr', 'br', 'img', 'input', 'meta', 'link'];
   const isVoidElement = voidElements.includes(element.type);
 
-  // Elements that cannot have text content as children
-  const noTextContentElements = ['textarea', 'select'];
-  const shouldRenderContent = !noTextContentElements.includes(element.type);
+  // Elements that cannot have text content as children (они используют defaultValue/value вместо children)
+  const noTextContentElements = ['textarea', 'select', 'input'];
+  const shouldRenderContent = !noTextContentElements.includes(element.type) && !isVoidElement;
 
   return (
     <div
@@ -211,8 +211,15 @@ const VisualElement = ({
         <ElementTag
           className={element.className || ''}
           style={{...inlineStyles, pointerEvents: 'auto'}}
+          type={element.inputType || element.type}
           src={element.srcKey ? defaultData[element.srcKey] : undefined}
           alt={element.altKey ? defaultData[element.altKey] : undefined}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
+          defaultValue={element.valueKey ? defaultData[element.valueKey] : element.value}
+          name={element.name}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
           onClick={(e: any) => {
             e.stopPropagation();
             onSelectElement({ element, path: currentPath });
@@ -222,6 +229,7 @@ const VisualElement = ({
         <ElementTag
           className={element.className || ''}
           style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
+          type={element.inputType || element.type}
           src={element.srcKey ? defaultData[element.srcKey] : undefined}
           alt={element.altKey ? defaultData[element.altKey] : undefined}
           href={element.hrefKey ? defaultData[element.hrefKey] : undefined}
@@ -232,8 +240,15 @@ const VisualElement = ({
           muted={element.muted}
           autoPlay={element.autoPlay}
           allowFullScreen={element.allowFullScreen}
-          placeholder={element.type === 'textarea' ? (element.placeholder || content || '') : undefined}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
           defaultValue={element.type === 'textarea' ? (content || '') : undefined}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
+          rows={element.rows}
+          cols={element.cols}
           onClick={(e: any) => {
             e.stopPropagation();
             onSelectElement({ element, path: currentPath });
