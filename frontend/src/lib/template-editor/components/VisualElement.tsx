@@ -225,6 +225,70 @@ const VisualElement = ({
             onSelectElement({ element, path: currentPath });
           }}
         />
+      ) : element.type === 'textarea' ? (
+        // Textarea должен быть self-closing, без children
+        <ElementTag
+          className={element.className || ''}
+          style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
+          rows={element.rows || 4}
+          cols={element.cols}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
+          defaultValue={content || ''}
+          onClick={(e: any) => {
+            e.stopPropagation();
+            onSelectElement({ element, path: currentPath });
+          }}
+        />
+      ) : element.type === 'select' ? (
+        // Select рендерит только option children
+        <ElementTag
+          className={element.className || ''}
+          style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          multiple={element.multiple}
+          defaultValue={content || ''}
+          onClick={(e: any) => {
+            e.stopPropagation();
+            onSelectElement({ element, path: currentPath });
+          }}
+        >
+          {element.children && element.children.length > 0 && (
+            <>
+              {element.children.map((child: any, index: number) => (
+                <React.Fragment key={`${currentPath.join('-')}-${index}`}>
+                  {renderDropZone(currentPath, index)}
+                  <VisualElement
+                    element={child}
+                    path={[...currentPath, index]}
+                    structure={structure}
+                    selectedElement={selectedElement}
+                    defaultData={defaultData}
+                    editableStyles={editableStyles}
+                    previewStyles={previewStyles}
+                    activeId={activeId}
+                    onSelectElement={onSelectElement}
+                    onCopyElement={onCopyElement}
+                    onDeleteElement={onDeleteElement}
+                    renderDropZone={renderDropZone}
+                    getIdFromPath={getIdFromPath}
+                  />
+                </React.Fragment>
+              ))}
+              {renderDropZone(currentPath, element.children.length)}
+            </>
+          )}
+          {element.children && element.children.length === 0 && (
+            <option value="">Добавьте опции</option>
+          )}
+        </ElementTag>
       ) : (
         <ElementTag
           className={element.className || ''}
@@ -254,9 +318,9 @@ const VisualElement = ({
             onSelectElement({ element, path: currentPath });
           }}
         >
-          {shouldRenderContent && content}
+          {element.type !== 'textarea' && shouldRenderContent && content}
 
-          {element.children && element.children.length > 0 && element.type !== 'textarea' && (
+          {element.type !== 'textarea' && element.children && element.children.length > 0 && (
             <>
               {element.children.map((child: any, index: number) => (
                 <React.Fragment key={`${currentPath.join('-')}-${index}`}>
@@ -281,7 +345,7 @@ const VisualElement = ({
               {renderDropZone(currentPath, element.children.length)}
             </>
           )}
-          {element.children && element.children.length === 0 && (
+          {element.type !== 'textarea' && element.children && element.children.length === 0 && (
             <div
               className="text-gray-400 text-sm py-8 text-center border-2 border-dashed border-gray-300 rounded m-2 hover:bg-gray-100 hover:border-gray-400 transition-colors select-none"
               style={{ pointerEvents: 'auto' }}
