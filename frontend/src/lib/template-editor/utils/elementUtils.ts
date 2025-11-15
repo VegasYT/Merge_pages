@@ -34,6 +34,18 @@ export const getDefaultClasses = (type: string): string => {
       return 'px-6 py-3 rounded text-white font-semibold bg-blue-500 hover:bg-blue-600';
     case 'a':
       return 'text-blue-600 hover:underline';
+    case 'form':
+      return 'w-full space-y-4';
+    case 'input':
+      return 'w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500';
+    case 'textarea':
+      return 'w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500 resize-vertical';
+    case 'select':
+      return 'w-full px-4 py-2 border border-gray-300 rounded focus:outline-none focus:ring-2 focus:ring-blue-500';
+    case 'option':
+      return '';
+    case 'label':
+      return 'block text-sm font-medium text-gray-700 mb-1';
     case 'img':
       return 'w-full h-auto';
     case 'video':
