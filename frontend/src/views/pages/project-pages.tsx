@@ -88,7 +88,7 @@ const ProjectPagesPage = () => {
 	const draftCount = pages.filter(p => p.status === 'draft').length;
 
 	const handleCreatePage = async () => {
-		if (!newPage.name || !newPage.title || !newPage.slug) {
+		if (!newPage.name || !newPage.title) {
 			toast.error('Please fill in all required fields');
 			return;
 		}
@@ -98,7 +98,7 @@ const ProjectPagesPage = () => {
 			const createdPage = await createPage(project.id, {
 				name: newPage.name,
 				title: newPage.title,
-				slug: newPage.slug,
+				slug: newPage.slug.trim() === '' ? 'index' : newPage.slug,
 				status: 'draft',
 			});
 
@@ -116,7 +116,7 @@ const ProjectPagesPage = () => {
 	};
 
 	const handleUpdatePage = async () => {
-		if (!editingPage || !editingPage.name || !editingPage.title || !editingPage.slug) {
+		if (!editingPage || !editingPage.name || !editingPage.title) {
 			toast.error('Please fill in all required fields');
 			return;
 		}
@@ -126,7 +126,7 @@ const ProjectPagesPage = () => {
 			const updatedPage = await updatePage(editingPage.id, {
 				name: editingPage.name,
 				title: editingPage.title,
-				slug: editingPage.slug,
+				slug: editingPage.slug.trim() === '' ? 'index' : editingPage.slug,
 				icon: editingPage.icon,
 				status: editingPage.status,
 			});
