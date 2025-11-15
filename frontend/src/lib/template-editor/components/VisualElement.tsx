@@ -119,9 +119,9 @@ const VisualElement = ({
   const voidElements = ['hr', 'br', 'img', 'input', 'meta', 'link'];
   const isVoidElement = voidElements.includes(element.type);
 
-  // Elements that cannot have text content as children
-  const noTextContentElements = ['textarea', 'select'];
-  const shouldRenderContent = !noTextContentElements.includes(element.type);
+  // Elements that cannot have text content as children (они используют defaultValue/value вместо children)
+  const noTextContentElements = ['textarea', 'select', 'input'];
+  const shouldRenderContent = !noTextContentElements.includes(element.type) && !isVoidElement;
 
   return (
     <div
@@ -211,37 +211,56 @@ const VisualElement = ({
         <ElementTag
           className={element.className || ''}
           style={{...inlineStyles, pointerEvents: 'auto'}}
+          type={element.inputType || element.type}
           src={element.srcKey ? defaultData[element.srcKey] : undefined}
           alt={element.altKey ? defaultData[element.altKey] : undefined}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
+          defaultValue={element.valueKey ? defaultData[element.valueKey] : element.value}
+          name={element.name}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
           onClick={(e: any) => {
             e.stopPropagation();
             onSelectElement({ element, path: currentPath });
           }}
         />
-      ) : (
+      ) : element.type === 'textarea' ? (
+        // Textarea должен быть self-closing, без children
         <ElementTag
           className={element.className || ''}
           style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
-          src={element.srcKey ? defaultData[element.srcKey] : undefined}
-          alt={element.altKey ? defaultData[element.altKey] : undefined}
-          href={element.hrefKey ? defaultData[element.hrefKey] : undefined}
-          poster={element.posterKey ? defaultData[element.posterKey] : undefined}
-          title={element.titleKey ? defaultData[element.titleKey] : undefined}
-          controls={element.controls}
-          loop={element.loop}
-          muted={element.muted}
-          autoPlay={element.autoPlay}
-          allowFullScreen={element.allowFullScreen}
-          placeholder={element.type === 'textarea' ? (element.placeholder || content || '') : undefined}
-          defaultValue={element.type === 'textarea' ? (content || '') : undefined}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
+          rows={element.rows || 4}
+          cols={element.cols}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
+          defaultValue={content || ''}
+          onClick={(e: any) => {
+            e.stopPropagation();
+            onSelectElement({ element, path: currentPath });
+          }}
+        />
+      ) : element.type === 'select' ? (
+        // Select рендерит только option children
+        <ElementTag
+          className={element.className || ''}
+          style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          multiple={element.multiple}
+          defaultValue={content || ''}
           onClick={(e: any) => {
             e.stopPropagation();
             onSelectElement({ element, path: currentPath });
           }}
         >
-          {shouldRenderContent && content}
-
-          {element.children && element.children.length > 0 && element.type !== 'textarea' && (
+          {element.children && element.children.length > 0 && (
             <>
               {element.children.map((child: any, index: number) => (
                 <React.Fragment key={`${currentPath.join('-')}-${index}`}>
@@ -267,6 +286,66 @@ const VisualElement = ({
             </>
           )}
           {element.children && element.children.length === 0 && (
+            <option value="">Добавьте опции</option>
+          )}
+        </ElementTag>
+      ) : (
+        <ElementTag
+          className={element.className || ''}
+          style={{...inlineStyles, position: 'relative', pointerEvents: 'auto'}}
+          type={element.inputType || element.type}
+          src={element.srcKey ? defaultData[element.srcKey] : undefined}
+          alt={element.altKey ? defaultData[element.altKey] : undefined}
+          href={element.hrefKey ? defaultData[element.hrefKey] : undefined}
+          poster={element.posterKey ? defaultData[element.posterKey] : undefined}
+          title={element.titleKey ? defaultData[element.titleKey] : undefined}
+          controls={element.controls}
+          loop={element.loop}
+          muted={element.muted}
+          autoPlay={element.autoPlay}
+          allowFullScreen={element.allowFullScreen}
+          placeholder={element.placeholderKey ? defaultData[element.placeholderKey] : element.placeholder}
+          defaultValue={element.type === 'textarea' ? (content || '') : undefined}
+          name={element.name}
+          id={element.id}
+          required={element.required}
+          disabled={element.disabled}
+          readOnly={element.readOnly}
+          rows={element.rows}
+          cols={element.cols}
+          onClick={(e: any) => {
+            e.stopPropagation();
+            onSelectElement({ element, path: currentPath });
+          }}
+        >
+          {element.type !== 'textarea' && shouldRenderContent && content}
+
+          {element.type !== 'textarea' && element.children && element.children.length > 0 && (
+            <>
+              {element.children.map((child: any, index: number) => (
+                <React.Fragment key={`${currentPath.join('-')}-${index}`}>
+                  {renderDropZone(currentPath, index)}
+                  <VisualElement
+                    element={child}
+                    path={[...currentPath, index]}
+                    structure={structure}
+                    selectedElement={selectedElement}
+                    defaultData={defaultData}
+                    editableStyles={editableStyles}
+                    previewStyles={previewStyles}
+                    activeId={activeId}
+                    onSelectElement={onSelectElement}
+                    onCopyElement={onCopyElement}
+                    onDeleteElement={onDeleteElement}
+                    renderDropZone={renderDropZone}
+                    getIdFromPath={getIdFromPath}
+                  />
+                </React.Fragment>
+              ))}
+              {renderDropZone(currentPath, element.children.length)}
+            </>
+          )}
+          {element.type !== 'textarea' && element.children && element.children.length === 0 && (
             <div
               className="text-gray-400 text-sm py-8 text-center border-2 border-dashed border-gray-300 rounded m-2 hover:bg-gray-100 hover:border-gray-400 transition-colors select-none"
               style={{ pointerEvents: 'auto' }}
