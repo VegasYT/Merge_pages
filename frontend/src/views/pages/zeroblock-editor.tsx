@@ -94,6 +94,11 @@ export const ZeroBlockEditorPage = () => {
 	// Храним hash сохраненного состояния для отслеживания изменений
 	const savedDataHashRef = useRef<string>('');
 
+	// Храним актуальное состояние сохраненных данных для правильной синхронизации
+	const [savedZeroLayers, setSavedZeroLayers] = useState<ZeroLayer[]>(initialZeroLayers);
+	const [savedZeroBlockResponsive, setSavedZeroBlockResponsive] = useState<ZeroBlockResponsive[]>(initialZeroBlockResponsive);
+	const [savedZeroLayerResponsive, setSavedZeroLayerResponsive] = useState<ZeroLayerResponsive[]>(initialZeroLayerResponsive);
+
 	// Логируем загруженные данные
 	useEffect(() => {
 		console.log('ZeroBlock Editor Data:', {
@@ -165,8 +170,9 @@ export const ZeroBlockEditorPage = () => {
 			// Создаем Map для сопоставления строковых ID (из ZBE) с числовыми ID (из базы)
 			// и Map существующих breakpoints по ширине
 			const breakpointIdMap = new Map<string, number>(); // stringId -> numericId
-			const existingBreakpointsByWidth = new Map(initialZeroBlockResponsive.map((bp) => [bp.width, bp]));
+			const existingBreakpointsByWidth = new Map(savedZeroBlockResponsive.map((bp) => [bp.width, bp]));
 			const currentBreakpointIds = new Set<number>();
+			const updatedBreakpoints: ZeroBlockResponsive[] = [];
 
 			// Обрабатываем каждый breakpoint из ZBE
 			for (const bp of breakpoints) {
@@ -178,13 +184,14 @@ export const ZeroBlockEditorPage = () => {
 				if (existing) {
 					// Обновляем существующий
 					// Округляем width и height до целых чисел
-					await updateZeroBlockResponsive(existing.id, {
+					const updated = await updateZeroBlockResponsive(existing.id, {
 						width: Math.round(bp.width),
 						height: Math.round(bp.height),
 						props: { name: bp.name, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, existing.id);
 					currentBreakpointIds.add(existing.id);
+					updatedBreakpoints.push(updated);
 					console.log(`  ✏️ Updated breakpoint ${existing.id} (${bp.name}, ${bp.width}px)`);
 				} else {
 					// Создаем новый
@@ -197,12 +204,13 @@ export const ZeroBlockEditorPage = () => {
 					});
 					breakpointIdMap.set(stringId, created.id);
 					currentBreakpointIds.add(created.id);
+					updatedBreakpoints.push(created);
 					console.log(`  ➕ Created breakpoint ${created.id} (${bp.name}, ${bp.width}px)`);
 				}
 			}
 
 			// Удаляем breakpoints которых больше нет в ZBE
-			for (const existingBp of initialZeroBlockResponsive) {
+			for (const existingBp of savedZeroBlockResponsive) {
 				if (!currentBreakpointIds.has(existingBp.id)) {
 					await deleteZeroBlockResponsive(existingBp.id);
 					console.log(`  🗑️ Deleted breakpoint ${existingBp.id}`);
@@ -213,8 +221,9 @@ export const ZeroBlockEditorPage = () => {
 			console.log('🎨 Syncing layers...');
 
 			// Создаем Map существующих layers
-			const existingLayersMap = new Map(initialZeroLayers.map((layer) => [layer.id, layer]));
+			const existingLayersMap = new Map(savedZeroLayers.map((layer) => [layer.id, layer]));
 			const currentLayerIds = new Set<number>();
+			const updatedLayers: ZeroLayer[] = [];
 
 			// Обрабатываем каждый element из ZBE
 			for (const element of elements) {
@@ -230,11 +239,12 @@ export const ZeroBlockEditorPage = () => {
 
 				// Если element имеет layerId и существует в базе - обновляем
 				if (element.layerId && existingLayersMap.has(element.layerId)) {
-					await updateZeroLayer(element.layerId, {
+					const updated = await updateZeroLayer(element.layerId, {
 						zero_base_element_id: baseElement.id,
 						position,
 					});
 					currentLayerIds.add(element.layerId);
+					updatedLayers.push(updated);
 					console.log(`  ✏️ Updated layer ${element.layerId} (${element.name}), position: ${position}`);
 				}
 				// Если нет layerId - создаем новый
@@ -245,12 +255,13 @@ export const ZeroBlockEditorPage = () => {
 					});
 					element.layerId = createdLayer.id;
 					currentLayerIds.add(createdLayer.id);
+					updatedLayers.push(createdLayer);
 					console.log(`  ➕ Created layer ${createdLayer.id} (${element.name}), position: ${position}`);
 				}
 			}
 
 			// Удаляем layers которых больше нет
-			for (const existingLayer of initialZeroLayers) {
+			for (const existingLayer of savedZeroLayers) {
 				if (!currentLayerIds.has(existingLayer.id)) {
 					await deleteZeroLayer(existingLayer.id);
 					console.log(`  🗑️ Deleted layer ${existingLayer.id}`);
@@ -262,9 +273,10 @@ export const ZeroBlockEditorPage = () => {
 
 			// Создаем Map существующих responsive настроек
 			const existingLayerResponsiveMap = new Map(
-				initialZeroLayerResponsive.map((lr) => [`${lr.zero_layer_id}_${lr.zero_block_responsive_id}`, lr])
+				savedZeroLayerResponsive.map((lr) => [`${lr.zero_layer_id}_${lr.zero_block_responsive_id}`, lr])
 			);
 			const currentLayerResponsiveIds = new Set<number>();
+			const updatedLayerResponsive: ZeroLayerResponsive[] = [];
 
 			// Обрабатываем каждый element для каждого breakpoint
 			for (const element of elements) {
@@ -320,25 +332,27 @@ export const ZeroBlockEditorPage = () => {
 					const existing = existingLayerResponsiveMap.get(key);
 
 					if (existing) {
-						// Обновляем существующую
-						await updateZeroLayerResponsive(existing.id, responsiveData);
+						// Обновляем существующую (PATCH)
+						const updated = await updateZeroLayerResponsive(existing.id, responsiveData);
 						currentLayerResponsiveIds.add(existing.id);
-						console.log(`  ✏️ Updated layer responsive ${existing.id} (layer ${element.layerId}, bp ${numericBpId})`);
+						updatedLayerResponsive.push(updated);
+						console.log(`  ✏️ PATCH layer responsive ${existing.id} (layer ${element.layerId}, bp ${numericBpId})`);
 					} else {
-						// Создаем новую (используем ЧИСЛОВОЙ ID!)
+						// Создаем новую (POST)
 						const created = await createZeroLayerResponsive(element.layerId, {
 							zero_block_responsive_id: numericBpId,
 							zero_block_id: zeroBlock.id,
 							...responsiveData,
 						});
 						currentLayerResponsiveIds.add(created.id);
-						console.log(`  ➕ Created layer responsive ${created.id} (layer ${element.layerId}, bp ${numericBpId}, zb ${zeroBlock.id})`);
+						updatedLayerResponsive.push(created);
+						console.log(`  ➕ POST layer responsive ${created.id} (layer ${element.layerId}, bp ${numericBpId}, zb ${zeroBlock.id})`);
 					}
 				}
 			}
 
 			// Удаляем responsive настройки которых больше нет
-			for (const existing of initialZeroLayerResponsive) {
+			for (const existing of savedZeroLayerResponsive) {
 				if (!currentLayerResponsiveIds.has(existing.id)) {
 					await deleteZeroLayerResponsive(existing.id);
 					console.log(`  🗑️ Deleted layer responsive ${existing.id}`);
@@ -347,6 +361,11 @@ export const ZeroBlockEditorPage = () => {
 
 			console.log('✅ All data saved successfully!');
 			toast.success('Изменения сохранены!');
+
+			// Обновляем сохраненное состояние для следующего сохранения
+			setSavedZeroBlockResponsive(updatedBreakpoints);
+			setSavedZeroLayers(updatedLayers);
+			setSavedZeroLayerResponsive(updatedLayerResponsive);
 
 			// Обновляем hash сохраненных данных
 			if (zbeDataRef.current) {
