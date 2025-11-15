@@ -1,5 +1,6 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { useAuthStore } from '@/stores';
 
 /**
  * Компонент для динамической генерации UI настроек на основе schema
@@ -182,18 +183,19 @@ function PropField({ propName, propConfig, value, onChange }) {
     );
   }
 
-  const jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzYzMDMxNDUxfQ.geILTiF95NsZiCSqotkYgQixTC1kG2n2j3IwCoJfQ5c"
-
   if (type === "upload") {
     const uploadFile = async (file) => {
       const formData = new FormData();
       formData.append("file", file);
 
+      // Получаем токен из auth store
+      const accessToken = useAuthStore.getState().accessToken;
+
       const res = await fetch("https://landy.website/api/media", {
         method: "POST",
         body: formData,
         headers: {
-          "Authorization": `Bearer ${jwt_token}`,
+          "Authorization": `Bearer ${accessToken}`,
         }
       });
 
@@ -206,11 +208,14 @@ function PropField({ propName, propConfig, value, onChange }) {
     };
 
     const uploadUrl = async () => {
+      // Получаем токен из auth store
+      const accessToken = useAuthStore.getState().accessToken;
+
       const res = await fetch("https://landy.website/api/media/upload-by-url", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${jwt_token}`,
+          "Authorization": `Bearer ${accessToken}`,
         },
         body: JSON.stringify({ url: urlInput }),
       })
