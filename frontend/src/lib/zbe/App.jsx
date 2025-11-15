@@ -1337,19 +1337,21 @@ useEffect(() => {
           onMouseDown={handleCanvasMouseDown}
           style={{ isolation: "isolate" }}
         >
-          <div className="absolute top-4 right-4 bg-white border border-gray-200 px-3 py-2 rounded-lg text-xs z-10 max-w-xs shadow-sm text-gray-700">
-            <div className="font-semibold mb-1">Управление:</div>
-            <div>Выделение областью - зажать ЛКМ и тянуть</div>
-            <div>Ctrl + область - добавить к выделению</div>
-            <div>Ctrl + клик - выбор нескольких элементов</div>
-            <div>Ctrl + C / Ctrl + V - копировать/вставить</div>
-            <div>Ctrl + Z / Ctrl + Shift + Z - отменить/повторить</div>
-            <div>Delete - удалить выбранные элементы</div>
-            <div>Alt - показать расстояния</div>
-            <div>Ctrl + колесико - зум к курсору</div>
-            <div>Средняя кнопка мыши - панорамирование</div>
-            <div>Колесико - вверх/вниз</div>
-            <div>Shift + колесико - влево/вправо</div>
+          <div className="absolute top-4 right-4 bg-white border border-gray-200 px-2 py-1.5 rounded-lg text-xs z-10 max-w-[240px] shadow-sm text-gray-700 leading-tight">
+            <div className="font-semibold mb-0.5 text-[11px]">Управление:</div>
+            <div className="text-[10px] space-y-0.5">
+              <div>Выделение областью - зажать ЛКМ</div>
+              <div>Ctrl + область - добавить</div>
+              <div>Ctrl + клик - множество</div>
+              <div>Ctrl + C / V - копировать</div>
+              <div>Ctrl + Z - отменить</div>
+              <div>Delete - удалить</div>
+              <div>Alt - расстояния</div>
+              <div>Ctrl + колесико - зум</div>
+              <div>СКМ - панорамирование</div>
+              <div>Колесико - вверх/вниз</div>
+              <div>Shift + колесико - влево/вправо</div>
+            </div>
           </div>
 
           <div
