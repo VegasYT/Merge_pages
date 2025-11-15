@@ -288,10 +288,16 @@ export const AdminPage = () => {
 
 	// Handle JSON editor save
 	const handleJsonSave = (data: { structure: any[]; editableStyles: Record<string, any>; defaultData: Record<string, any> }) => {
-		setStructure(data.structure);
-		setEditableStyles(data.editableStyles);
-		setDefaultData(data.defaultData);
-		toast.success('JSON updated successfully!');
+		try {
+			console.log('📝 Applying JSON data:', data);
+			setStructure(data.structure);
+			setEditableStyles(data.editableStyles);
+			setDefaultData(data.defaultData);
+			toast.success('JSON updated successfully!');
+		} catch (error: any) {
+			console.error('❌ Error applying JSON:', error);
+			toast.error('Failed to apply JSON: ' + error.message);
+		}
 	};
 
 	// Copy JSON to clipboard
