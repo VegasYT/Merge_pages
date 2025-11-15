@@ -22,6 +22,9 @@ import { useDndHandlers } from '@/lib/template-editor/hooks/useDndHandlers';
 // Template Editor Utils
 import { getElementByPath, getDefaultClasses } from '@/lib/template-editor/utils/elementUtils';
 
+// API Services
+import { createBlockTemplate } from '@/lib/services/block-templates';
+
 export const AdminPage = () => {
 	const [templateName, setTemplateName] = useState('');
 	const [categoryId, setCategoryId] = useState(1);
@@ -234,6 +237,13 @@ export const AdminPage = () => {
 				return;
 			}
 
+			if (structure.length === 0) {
+				toast.error('Please add at least one element to the template');
+				return;
+			}
+
+			console.log('💾 Saving template:', templateName);
+
 			const templateData = {
 				category_id: categoryId,
 				template_name: templateName,
@@ -248,22 +258,10 @@ export const AdminPage = () => {
 				preview_url: 'https://via.placeholder.com/300x200'
 			};
 
-			const response = await fetch('/api/block-templates', {
-				method: 'POST',
-				headers: {
-					'Content-Type': 'application/json',
-				},
-				body: JSON.stringify(templateData),
-			});
+			const result = await createBlockTemplate(templateData);
 
-			if (!response.ok) {
-				const errorData = await response.json().catch(() => null);
-				throw new Error(errorData?.message || 'Failed to save template');
-			}
-
-			const result = await response.json();
 			toast.success('Template saved successfully!');
-			console.log('Saved template:', result);
+			console.log('✅ Saved template:', result);
 
 			// Очистка формы
 			setTemplateName('');
@@ -271,9 +269,19 @@ export const AdminPage = () => {
 			setDefaultData({});
 			setEditableStyles({});
 			setJavascript('');
-		} catch (error) {
-			console.error('Error saving template:', error);
-			toast.error(error instanceof Error ? error.message : 'Failed to save template');
+		} catch (error: any) {
+			console.error('❌ Error saving template:', error);
+
+			// Обработка различных типов ошибок
+			if (error.response?.status === 401) {
+				toast.error('Session expired. Please log in again.');
+			} else if (error.response?.status === 403) {
+				toast.error('You do not have permission to create templates');
+			} else if (error.response?.data?.message) {
+				toast.error(error.response.data.message);
+			} else {
+				toast.error('Failed to save template. Please try again.');
+			}
 		}
 	};
 
