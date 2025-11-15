@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Code, Save, Settings, FileJson } from 'lucide-react';
+import { Code, Save, Settings, FileJson, Eye, Copy } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DndContext,
@@ -34,6 +34,7 @@ export const AdminPage = () => {
 	const [defaultData, setDefaultData] = useState<Record<string, any>>({});
 	const [previewStyles, setPreviewStyles] = useState<Record<string, any>>({});
 	const [javascript, setJavascript] = useState('');
+	const [viewMode, setViewMode] = useState<'visual' | 'json'>('visual');
 
 	// JSON editor modal state
 	const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
@@ -293,6 +294,26 @@ export const AdminPage = () => {
 		toast.success('JSON updated successfully!');
 	};
 
+	// Copy JSON to clipboard
+	const copyJsonToClipboard = () => {
+		const jsonData = {
+			category_id: categoryId,
+			template_name: templateName,
+			name: templateName,
+			settings: {
+				structure: structure,
+				editableStyles: editableStyles,
+				editableElements: Object.keys(defaultData),
+				...(javascript && { javascript: javascript })
+			},
+			default_data: defaultData,
+			preview_url: 'https://via.placeholder.com/300x200'
+		};
+
+		navigator.clipboard.writeText(JSON.stringify(jsonData, null, 2));
+		toast.success('JSON copied to clipboard!');
+	};
+
 	return (
 		<DndContext
 			sensors={sensors}
@@ -323,6 +344,34 @@ export const AdminPage = () => {
 						</div>
 					</div>
 					<div className="flex items-center gap-3">
+						{/* View Mode Toggle */}
+						<div className="flex items-center gap-2 bg-gray-100 p-1 rounded-lg">
+							<button
+								onClick={() => setViewMode('visual')}
+								className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition ${
+									viewMode === 'visual'
+										? 'bg-white text-blue-600 shadow-sm'
+										: 'text-gray-600 hover:text-gray-900'
+								}`}
+							>
+								<Eye size={16} />
+								Visual
+							</button>
+							<button
+								onClick={() => setViewMode('json')}
+								className={`flex items-center gap-2 px-3 py-1.5 rounded-md text-sm font-medium transition ${
+									viewMode === 'json'
+										? 'bg-white text-blue-600 shadow-sm'
+										: 'text-gray-600 hover:text-gray-900'
+								}`}
+							>
+								<Code size={16} />
+								JSON
+							</button>
+						</div>
+
+						<div className="h-8 w-px bg-gray-300"></div>
+
 						<button
 							onClick={() => setIsJsonEditorOpen(true)}
 							className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
@@ -343,13 +392,15 @@ export const AdminPage = () => {
 
 				{/* Main Content */}
 				<div className="flex-1 flex overflow-hidden">
-					{/* Left Sidebar - Elements */}
-					<div className="w-64 bg-white border-r overflow-y-auto">
-						<ElementsSidebar onAddElement={addElement} />
-					</div>
+					{viewMode === 'visual' ? (
+						<>
+							{/* Left Sidebar - Elements */}
+							<div className="w-64 bg-white border-r overflow-y-auto">
+								<ElementsSidebar onAddElement={addElement} />
+							</div>
 
-					{/* Center - Visual Canvas */}
-					<div className="flex-1 bg-gray-100 p-4 overflow-auto">
+							{/* Center - Visual Canvas */}
+							<div className="flex-1 bg-gray-100 p-4 overflow-auto">
 						<div className="bg-white rounded-xl shadow-sm p-8 max-w-5xl mx-auto">
 							<h2 className="text-xl font-bold mb-4">Visual Builder</h2>
 							<p className="text-gray-600 mb-6 text-sm">
@@ -663,6 +714,64 @@ if (slider) {
 							</div>
 						</div>
 					</div>
+						</>
+					) : (
+						<>
+							{/* JSON View */}
+							<div className="flex-1 bg-gray-50 p-6 overflow-auto">
+								<div className="bg-white rounded-lg shadow-xl p-8 max-w-5xl mx-auto">
+									<div className="flex justify-between items-center mb-6">
+										<h2 className="text-2xl font-bold">Generated JSON Template</h2>
+										<button
+											onClick={copyJsonToClipboard}
+											className="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition flex items-center gap-2"
+										>
+											<Copy size={16} />
+											Copy JSON
+										</button>
+									</div>
+
+									<div className="mb-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+										<h3 className="font-semibold text-blue-900 mb-2">Template Summary</h3>
+										<div className="grid grid-cols-2 gap-4 text-sm">
+											<div>
+												<span className="text-gray-600">Template Name:</span>
+												<span className="ml-2 font-semibold">{templateName || 'Untitled'}</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Category ID:</span>
+												<span className="ml-2 font-semibold">{categoryId}</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Total Elements:</span>
+												<span className="ml-2 font-semibold">{JSON.stringify(structure).match(/"type"/g)?.length || 0}</span>
+											</div>
+											<div>
+												<span className="text-gray-600">Editable Items:</span>
+												<span className="ml-2 font-semibold">{Object.keys(defaultData).length + Object.keys(editableStyles).length}</span>
+											</div>
+										</div>
+									</div>
+
+									<pre className="bg-gray-900 text-green-400 p-6 rounded-lg overflow-auto text-xs leading-relaxed shadow-inner max-h-[calc(100vh-400px)]">
+										{JSON.stringify({
+											category_id: categoryId,
+											template_name: templateName,
+											name: templateName,
+											settings: {
+												structure,
+												editableElements: Object.keys(defaultData),
+												editableStyles,
+												...(javascript && { javascript })
+											},
+											default_data: defaultData,
+											preview_url: 'https://via.placeholder.com/300x200'
+										}, null, 2)}
+									</pre>
+								</div>
+							</div>
+						</>
+					)}
 				</div>
 			</div>
 
