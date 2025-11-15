@@ -1,5 +1,7 @@
 import React, { useState, useCallback, useRef, useEffect } from "react";
 import { Plus, Trash2 } from "lucide-react";
+import { uploadMedia, uploadMediaByUrl } from '@/lib/services/media';
+import { REST_API_URL } from '@/lib/constants/env';
 
 /**
  * Компонент для динамической генерации UI настроек на основе schema
@@ -182,44 +184,33 @@ function PropField({ propName, propConfig, value, onChange }) {
     );
   }
 
-  const jwt_token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiIyIiwiZXhwIjoxNzYzMDMxNDUxfQ.geILTiF95NsZiCSqotkYgQixTC1kG2n2j3IwCoJfQ5c"
-
   if (type === "upload") {
     const uploadFile = async (file) => {
-      const formData = new FormData();
-      formData.append("file", file);
-
-      const res = await fetch("https://landy.website/api/media", {
-        method: "POST",
-        body: formData,
-        headers: {
-          "Authorization": `Bearer ${jwt_token}`,
+      try {
+        const data = await uploadMedia(file);
+        if (data.url) {
+          // Формируем полный URL
+          const fullUrl = data.url.startsWith('http') ? data.url : `${REST_API_URL.replace('/api', '')}${data.url}`;
+          onChange(fullUrl);
+          setIsOpen(false);
         }
-      });
-
-      const data = await res.json();
-      if (data.url) {
-        const fullUrl = `https://landy.website${data.url}`;
-        onChange(fullUrl);
-        setIsOpen(false);
+      } catch (error) {
+        console.error('Upload failed:', error);
       }
     };
 
     const uploadUrl = async () => {
-      const res = await fetch("https://landy.website/api/media/upload-by-url", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${jwt_token}`,
-        },
-        body: JSON.stringify({ url: urlInput }),
-      })
-
-      const data = await res.json();
-      if (data.url) {
-        const fullUrl = `https://landy.website${data.url}`;
-        onChange(fullUrl);
-        setIsOpen(false);
+      try {
+        const data = await uploadMediaByUrl({ url: urlInput });
+        if (data.url) {
+          // Формируем полный URL
+          const fullUrl = data.url.startsWith('http') ? data.url : `${REST_API_URL.replace('/api', '')}${data.url}`;
+          onChange(fullUrl);
+          setIsOpen(false);
+          setUrlInput('');
+        }
+      } catch (error) {
+        console.error('Upload by URL failed:', error);
       }
     };
 

@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Settings, Trash2, ArrowUp, ArrowDown, Plus, Edit3 } from 'lucide-react';
 import { useNavigate, useParams } from 'react-router';
 import UniversalBlockRenderer from './UniversalBlockRenderer';
@@ -43,12 +43,61 @@ export default function BlockPreview({
 }: BlockPreviewProps) {
 	const navigate = useNavigate();
 	const { projectId, pageId } = useParams();
+	const blockRef = useRef<HTMLDivElement>(null);
 
 	const handleEditZeroBlock = () => {
 		navigate(`/projects/${projectId}/pages/${pageId}/blocks/${block.id}/zeroblock-editor`);
 	};
+
+	// Выполнение JavaScript кода блока с изоляцией
+	useEffect(() => {
+		if (!template || !template.settings.javascript || block.type === 'zeroblock') {
+			return;
+		}
+
+		const blockElement = blockRef.current;
+		if (!blockElement) {
+			return;
+		}
+
+		// Данные блока (без styles)
+		const { styles, ...data } = block.settings;
+		const blockId = block.id;
+
+		// Оборачиваем пользовательский скрипт в IIFE для изоляции
+		const wrappedScript = `
+			(function(blockElement, data, blockId) {
+				'use strict';
+				try {
+					${template.settings.javascript}
+				} catch (error) {
+					console.error('Error executing block script for block #' + blockId + ':', error);
+				}
+			})(arguments[0], arguments[1], arguments[2]);
+		`;
+
+		try {
+			// Создаем функцию из строки и выполняем ее
+			const executeScript = new Function('blockElement', 'data', 'blockId', wrappedScript);
+			executeScript(blockElement, data, blockId);
+		} catch (error) {
+			console.error(`Error executing script for block #${blockId}:`, error);
+		}
+
+		// Cleanup function - опционально, если скрипт создает слушателей событий
+		return () => {
+			// Здесь можно добавить cleanup логику если нужно
+		};
+	}, [block, template, block.settings]);
+
 	return (
-		<div onMouseEnter={onHover} onMouseLeave={onLeave} className="relative group">
+		<div
+			ref={blockRef}
+			id={`block-${block.id}`}
+			onMouseEnter={onHover}
+			onMouseLeave={onLeave}
+			className="relative group"
+		>
 			{isHovered && (
 				<div className="absolute inset-0 bg-blue-500 bg-opacity-10 border-4 border-blue-500 z-10 pointer-events-none">
 					<div className="absolute top-4 right-4 flex gap-2 pointer-events-auto">

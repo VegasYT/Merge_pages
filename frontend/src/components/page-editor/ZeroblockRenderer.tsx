@@ -116,6 +116,8 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 			width: `${width}px`,
 			height: `${height}px`,
 			boxSizing: 'border-box',
+			borderRadius: props.borderRadius ? `${props.borderRadius}px` : undefined,
+			opacity: props.opacity !== undefined ? props.opacity : 1,
 		};
 
 		// Рендер в зависимости от типа элемента
@@ -192,6 +194,23 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 					</button>
 				);
 
+			case 'video':
+				return (
+					<video
+						key={mergedLayer.id}
+						src={props.src}
+						autoPlay={props.autoPlay === 'Нет' ? false : props.autoPlay === 'Да' ? true : false}
+						controls={props.controls === 'Скрыть' ? false : props.controls === 'Показать' ? true : false}
+						poster={props.preview_status === 'Да' && props.preview ? props.preview : ''}
+						loop={props.loop === 'Нет' ? false : props.loop === 'Да' ? true : false}
+						muted={props.muted === 'Нет' ? false : props.muted === 'Да' ? true : false}
+						style={{
+							...baseStyles,
+							objectFit: props.objectFit || 'cover',
+						}}
+					/>
+				);
+
 			default:
 				return (
 					<div
@@ -226,37 +245,32 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 			.filter((layer): layer is MergedLayerData => layer !== null)
 			.sort((a, b) => a.position - b.position) || [];
 
+	// Определяем выравнивание на основе alignment из props
+	const alignment = activeResponsive.props?.alignment || 'left';
+	const justifyContent = alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start';
+
 	return (
 		<div
-			ref={containerRef}
 			style={{
-				position: 'relative',
 				width: '100%',
-				height: `${activeResponsive.height}px`,
-				overflow: 'hidden',
+				display: 'flex',
+				justifyContent: justifyContent,
 			}}
 		>
-			{/* Информация о текущем брейкпоинте (для отладки) */}
 			<div
+				ref={containerRef}
 				style={{
-					position: 'absolute',
-					top: '10px',
-					right: '10px',
-					padding: '8px 12px',
-					background: 'rgba(0, 0, 0, 0.7)',
-					color: 'white',
-					fontSize: '12px',
-					borderRadius: '4px',
-					zIndex: 1000,
+					position: 'relative',
+					width: `${activeResponsive.width}px`,
+					maxWidth: '100%',
+					height: `${activeResponsive.height}px`,
+					overflow: 'hidden',
+					backgroundColor: activeResponsive.props?.backgroundColor || '#ffffff',
 				}}
 			>
-				{activeResponsive.props?.name || 'Unknown'} ({activeResponsive.width}x{activeResponsive.height})
-				<br />
-				Container: {containerWidth}px
+				{/* Рендер всех элементов */}
+				{layersData.map((layer) => renderElement(layer))}
 			</div>
-
-			{/* Рендер всех элементов */}
-			{layersData.map((layer) => renderElement(layer))}
 		</div>
 	);
 }

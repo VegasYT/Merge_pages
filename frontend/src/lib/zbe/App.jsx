@@ -36,6 +36,7 @@ import { useBreakpoints } from "./hooks/useBreakpoints.jsx";
 // Импорт утилит
 import { createElement } from "./utils/elementUtils.jsx";
 import { measureTextSize, generateUniqueName } from "./utils/textUtils.jsx";
+import { convertResponsiveToBreakpoints, convertLayersToElements } from "./utils/dataConverter.jsx";
 
 // Импорт компонентов
 import { SnapLines, SelectionBox, DistanceLines } from "./components/Canvas/index.jsx";
@@ -43,7 +44,7 @@ import BreakpointPanel from "./components/BreakpointPanel.jsx";
 import { mergeElementWithBreakpoint } from "./utils/breakpointUtils.jsx";
 import ContextMenu from "./components/ContextMenu.jsx";
 
-export default function App({ initialData, onDataChange, onGetData }) {
+export default function App({ initialData, onGetData }) {
   // Загружаем типы элементов
   const {
     getTypeConfig,
@@ -55,9 +56,15 @@ export default function App({ initialData, onDataChange, onGetData }) {
 
   // Используем кастомные хуки
 
+  // Преобразуем initialData для брейкпоинтов
+  const initialBreakpoints = initialData?.zeroBlockResponsive
+    ? convertResponsiveToBreakpoints(initialData.zeroBlockResponsive)
+    : null;
+
   // Брейкпоинты
   const {
     breakpoints,
+    setBreakpoints,
     activeBreakpointId,
     getActiveBreakpoint,
     getDefaultBreakpoint,
@@ -65,7 +72,7 @@ export default function App({ initialData, onDataChange, onGetData }) {
     updateBreakpoint,
     deleteBreakpoint,
     setActiveBreakpoint,
-  } = useBreakpoints();
+  } = useBreakpoints(initialBreakpoints);
 
   const activeBreakpoint = getActiveBreakpoint();
   const defaultBreakpoint = getDefaultBreakpoint();
@@ -170,18 +177,51 @@ export default function App({ initialData, onDataChange, onGetData }) {
   const containerRef = useRef(null);
   const menuRef = useRef(null);
   const isFirstRender = useRef(true);
+  const isInitialDataLoaded = useRef(false);
 
-  // Отслеживаем изменения данных и вызываем onDataChange
+  // Загрузка initialData при первом монтировании
+  useEffect(() => {
+    // Загружаем данные только один раз
+    if (isInitialDataLoaded.current) return;
+
+    if (initialData?.zeroLayers && initialData.zeroLayers.length > 0) {
+      console.log('🔄 Loading initial data into ZBE...');
+      console.log('  - Layers:', initialData.zeroLayers.length);
+      console.log('  - Layer Responsive:', initialData.zeroLayerResponsive?.length || 0);
+      console.log('  - Breakpoints:', breakpoints.length);
+
+      try {
+        // Преобразуем layers в элементы ZBE
+        const loadedElements = convertLayersToElements(
+          initialData.zeroLayers,
+          initialData.zeroLayerResponsive || [],
+          initialData.zeroBaseElements || [],
+          breakpoints
+        );
+
+        if (loadedElements.length > 0) {
+          console.log('✅ Loaded elements:', loadedElements.length);
+          setElements(loadedElements);
+        } else {
+          console.warn('⚠️ No elements were loaded from initialData');
+        }
+      } catch (error) {
+        console.error('❌ Error loading initial data:', error);
+      }
+
+      isInitialDataLoaded.current = true;
+    } else {
+      console.log('ℹ️ No initial layers to load');
+      isInitialDataLoaded.current = true;
+    }
+  }, [initialData, breakpoints]);
+
+  // Отслеживаем изменения данных и передаем их в wrapper
   useEffect(() => {
     // Пропускаем первый рендер (инициализацию)
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
-    }
-
-    if (onDataChange) {
-      console.log('Data changed, calling onDataChange');
-      onDataChange();
     }
 
     // Передаем актуальные данные в wrapper
@@ -191,7 +231,7 @@ export default function App({ initialData, onDataChange, onGetData }) {
         breakpoints,
       });
     }
-  }, [elements, breakpoints, onDataChange, onGetData]);
+  }, [elements, breakpoints, onGetData]);
 
   // measureTextSize и generateName перенесены в utils/textUtils.js
 
@@ -215,7 +255,13 @@ export default function App({ initialData, onDataChange, onGetData }) {
       y: 50 - canvasOffset.y / zoom
     };
 
-    const newElement = createElement(typeName, typeConfig, defaultProps, defaultSize, position, generatedName);
+    // Вычисляем максимальный zIndex и добавляем +1
+    const maxZIndex = elements.length > 0
+      ? Math.max(...elements.map(el => el.zIndex || 0))
+      : -1;
+    const newZIndex = maxZIndex + 1;
+
+    const newElement = createElement(typeName, typeConfig, defaultProps, defaultSize, position, generatedName, newZIndex);
 
     addElement(newElement);
     selectElement(newElement.id);
@@ -1197,7 +1243,7 @@ useEffect(() => {
             <h3 className="font-semibold text-lg">Слои</h3>
           </div>
           <div className="flex-1 overflow-auto p-2">
-            {[...elements].reverse().map((element) => (
+            {[...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0)).map((element) => (
               <div
                 key={element.id}
                 onClick={(e) => {
@@ -1341,7 +1387,7 @@ useEffect(() => {
                 selectionEnd={selectionEnd}
               />
 
-              {elements.map((baseElement) => {
+              {[...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)).map((baseElement) => {
                 // Применяем мердж с активным брейкпоинтом
                 const element = mergeElementWithBreakpoint(baseElement, activeBreakpointId);
                 return (
@@ -1539,6 +1585,18 @@ useEffect(() => {
                   onChange={(e) => updateBreakpoint(activeBreakpointId, { backgroundColor: e.target.value })}
                   className="w-full h-10 rounded"
                 />
+              </div>
+              <div>
+                <label className="block text-sm mb-2">Выравнивание блока</label>
+                <select
+                  value={activeBreakpoint.alignment || 'left'}
+                  onChange={(e) => updateBreakpoint(activeBreakpointId, { alignment: e.target.value })}
+                  className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                >
+                  <option value="left">Слева</option>
+                  <option value="center">По центру</option>
+                  <option value="right">Справа</option>
+                </select>
               </div>
             </div>
           </div>

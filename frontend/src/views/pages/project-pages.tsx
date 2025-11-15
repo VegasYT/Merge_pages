@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
-import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
-import { createPage, updatePage, deletePage } from '@/lib/services/pages';
+import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft, Upload } from 'lucide-react';
+import { createPage, updatePage, deletePage, updatePageStatus } from '@/lib/services/pages';
+import { publishPages } from '@/lib/services/projects';
 import type { Page } from '@/lib/services/pages';
 import { toast } from 'sonner';
 
@@ -35,6 +36,20 @@ const ProjectPagesPage = () => {
 	const [isEditPageModalOpen, setIsEditPageModalOpen] = useState(false);
 	const [editingPage, setEditingPage] = useState<Page | null>(null);
 	const [isUpdating, setIsUpdating] = useState(false);
+	const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+	const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
+	const [isPublishing, setIsPublishing] = useState(false);
+
+	// Функция для нормализации slug
+	const normalizeSlug = (value: string): string => {
+		return value
+			.toLowerCase() // Переводим в нижний регистр
+			.replace(/\s+/g, '-') // Заменяем пробелы на дефисы
+			.replace(/[^a-z0-9\-\/]/g, '') // Оставляем только буквы, цифры, дефисы и слеши
+			.replace(/\/+/g, '/') // Заменяем несколько слешей подряд на один
+			.replace(/\-+/g, '-') // Заменяем несколько дефисов подряд на один
+			.replace(/^\/+/, ''); // Убираем слеши только в начале
+	};
 
 	const filteredPages = pages.filter(page => {
 		const matchesSearch =
@@ -72,9 +87,18 @@ const ProjectPagesPage = () => {
 	const publishedCount = pages.filter(p => p.status === 'published').length;
 	const draftCount = pages.filter(p => p.status === 'draft').length;
 
+	// Проверяем, существует ли уже страница с slug "index" или "/index"
+	const hasIndexPage = pages.some(p => p.slug === '/index' || p.slug === 'index');
+
 	const handleCreatePage = async () => {
-		if (!newPage.name || !newPage.title || !newPage.slug) {
+		if (!newPage.name || !newPage.title) {
 			toast.error('Please fill in all required fields');
+			return;
+		}
+
+		// Проверяем, пытается ли пользователь создать вторую страницу с пустым slug
+		if (newPage.slug.trim() === '' && hasIndexPage) {
+			toast.error('Главная страница (index) уже существует. Укажите другой slug.');
 			return;
 		}
 
@@ -83,7 +107,7 @@ const ProjectPagesPage = () => {
 			const createdPage = await createPage(project.id, {
 				name: newPage.name,
 				title: newPage.title,
-				slug: newPage.slug,
+				slug: newPage.slug.trim() === '' ? 'index' : newPage.slug,
 				status: 'draft',
 			});
 
@@ -101,9 +125,19 @@ const ProjectPagesPage = () => {
 	};
 
 	const handleUpdatePage = async () => {
-		if (!editingPage || !editingPage.name || !editingPage.title || !editingPage.slug) {
+		if (!editingPage || !editingPage.name || !editingPage.title) {
 			toast.error('Please fill in all required fields');
 			return;
+		}
+
+		// Проверяем, пытается ли пользователь изменить slug на пустой, если уже есть другая страница с index
+		if (editingPage.slug.trim() === '' && hasIndexPage) {
+			// Проверяем, что это не та же самая страница с index
+			const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+			if (currentIndexPage && currentIndexPage.id !== editingPage.id) {
+				toast.error('Главная страница (index) уже существует. Укажите другой slug.');
+				return;
+			}
 		}
 
 		setIsUpdating(true);
@@ -111,7 +145,7 @@ const ProjectPagesPage = () => {
 			const updatedPage = await updatePage(editingPage.id, {
 				name: editingPage.name,
 				title: editingPage.title,
-				slug: editingPage.slug,
+				slug: editingPage.slug.trim() === '' ? 'index' : editingPage.slug,
 				icon: editingPage.icon,
 				status: editingPage.status,
 			});
@@ -148,28 +182,79 @@ const ProjectPagesPage = () => {
 	};
 
 	const openEditModal = (page: Page) => {
-		setEditingPage({ ...page });
+		setEditingPage(page);
 		setIsEditPageModalOpen(true);
 		setSelectedPage(null);
 		setContextMenuPosition(null);
 	};
 
 	const togglePageStatus = async (page: Page) => {
-		const newStatus = page.status === 'published' ? 'draft' : 'published';
+		// Если страница уже черновик, показываем уведомление
+		if (page.status === 'draft') {
+			toast.info('Страница уже находится в статусе черновика');
+			setSelectedPage(null);
+			setContextMenuPosition(null);
+			return;
+		}
 
+		// Если страница опубликована, снимаем с публикации
 		try {
-			const updatedPage = await updatePage(page.id, {
-				status: newStatus,
+			const updatedPage = await updatePageStatus(page.id, {
+				status: 'draft',
 			});
 
 			setPages(pages.map(p => p.id === updatedPage.id ? updatedPage : p));
 			setSelectedPage(null);
 			setContextMenuPosition(null);
 
-			toast.success(`Page ${newStatus === 'published' ? 'published' : 'unpublished'} successfully!`);
+			toast.success('Страница снята с публикации');
 		} catch (error: any) {
 			console.error('Error updating page status:', error);
-			toast.error(error.response?.data?.message || 'Failed to update page status.');
+			toast.error(error.response?.data?.message || 'Не удалось снять страницу с публикации');
+		}
+	};
+
+	const handlePublishPages = async () => {
+		if (selectedPageIds.length === 0) {
+			toast.error('Выберите хотя бы одну страницу для публикации');
+			return;
+		}
+
+		setIsPublishing(true);
+		try {
+			await publishPages(project.id, { page_ids: selectedPageIds });
+
+			// Обновляем статус опубликованных страниц в UI
+			setPages(pages.map(p =>
+				selectedPageIds.includes(p.id)
+					? { ...p, status: 'published' as const }
+					: p
+			));
+
+			toast.success(`${selectedPageIds.length} ${selectedPageIds.length === 1 ? 'страница опубликована' : 'страницы опубликованы'} успешно!`);
+			setIsPublishModalOpen(false);
+			setSelectedPageIds([]);
+		} catch (error: any) {
+			console.error('Error publishing pages:', error);
+			toast.error(error.response?.data?.message || 'Не удалось опубликовать страницы');
+		} finally {
+			setIsPublishing(false);
+		}
+	};
+
+	const togglePageSelection = (pageId: number) => {
+		setSelectedPageIds(prev =>
+			prev.includes(pageId)
+				? prev.filter(id => id !== pageId)
+				: [...prev, pageId]
+		);
+	};
+
+	const toggleAllPages = () => {
+		if (selectedPageIds.length === pages.length) {
+			setSelectedPageIds([]);
+		} else {
+			setSelectedPageIds(pages.map(p => p.id));
 		}
 	};
 
@@ -193,14 +278,24 @@ const ProjectPagesPage = () => {
 							</div>
 						</div>
 
-						<button
-							onClick={() => setIsAddPageModalOpen(true)}
-							className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
-						>
-							<Plus size={18} className="md:w-5 md:h-5" />
-							<span className="hidden sm:inline">New Page</span>
-							<span className="sm:hidden">New</span>
-						</button>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setIsPublishModalOpen(true)}
+								className="px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-green-500/30 text-sm md:text-base"
+							>
+								<Upload size={18} className="md:w-5 md:h-5" />
+								<span className="hidden sm:inline">Опубликовать страницы</span>
+								<span className="sm:hidden">Опубликовать</span>
+							</button>
+							<button
+								onClick={() => setIsAddPageModalOpen(true)}
+								className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
+							>
+								<Plus size={18} className="md:w-5 md:h-5" />
+								<span className="hidden sm:inline">New Page</span>
+								<span className="sm:hidden">New</span>
+							</button>
+						</div>
 					</div>
 
 					{/* Search and Filters */}
@@ -365,7 +460,8 @@ const ProjectPagesPage = () => {
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
-											window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+											const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+											window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 										}}
 										className="flex-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
 									>
@@ -438,7 +534,8 @@ const ProjectPagesPage = () => {
 										<button
 											onClick={(e) => {
 												e.stopPropagation();
-												window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+												const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+												window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 											}}
 											className="p-1.5 md:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors hidden sm:block"
 											title="Open"
@@ -538,7 +635,8 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									navigator.clipboard.writeText(`https://${project.subdomain}.yourdomain.com${page.slug}`);
+									const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+									navigator.clipboard.writeText(`https://${project.subdomain}.landy.website${slug}`);
 									toast.success('Link copied to clipboard!');
 								}
 								setSelectedPage(null);
@@ -553,7 +651,8 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+									const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+									window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 								}
 								setSelectedPage(null);
 								setContextMenuPosition(null);
@@ -572,8 +671,8 @@ const ProjectPagesPage = () => {
 							}}
 							className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3"
 						>
-							<Eye size={16} />
-							Toggle Status
+							<EyeOff size={16} />
+							Скрыть страницу
 						</button>
 						<hr className="my-1" />
 						<button
@@ -653,23 +752,23 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">landy.website/</span>
 									<input
 										type="text"
 										value={newPage.slug}
 										onChange={(e) => {
-											let value = e.target.value;
-											if (value && !value.startsWith('/')) {
-												value = '/' + value;
-											}
-											setNewPage({ ...newPage, slug: value });
+											const normalized = normalizeSlug(e.target.value);
+											setNewPage({ ...newPage, slug: normalized });
 										}}
-										placeholder="/about"
+										placeholder="about"
 										disabled={isCreating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
 								</div>
-								<p className="text-xs text-gray-500 mt-1">Must start with / (e.g., /about, /contact)</p>
+								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
+								{newPage.slug.trim() === '' && hasIndexPage && (
+									<p className="text-xs text-red-500 mt-1">Главная страница (index) уже существует. Укажите другой slug.</p>
+								)}
 							</div>
 						</div>
 
@@ -687,7 +786,7 @@ const ProjectPagesPage = () => {
 							</button>
 							<button
 								onClick={handleCreatePage}
-								disabled={!newPage.name || !newPage.title || !newPage.slug || isCreating}
+								disabled={!newPage.name || !newPage.title || (newPage.slug.trim() === '' && hasIndexPage) || isCreating}
 								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 							>
 								{isCreating ? (
@@ -756,23 +855,26 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">landy.website/</span>
 									<input
 										type="text"
 										value={editingPage.slug}
 										onChange={(e) => {
-											let value = e.target.value;
-											if (value && !value.startsWith('/')) {
-												value = '/' + value;
-											}
-											setEditingPage({ ...editingPage, slug: value });
+											const normalized = normalizeSlug(e.target.value);
+											setEditingPage({ ...editingPage, slug: normalized });
 										}}
-										placeholder="/about"
+										placeholder="about"
 										disabled={isUpdating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
 								</div>
-								<p className="text-xs text-gray-500 mt-1">Must start with / (e.g., /about, /contact)</p>
+								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
+								{editingPage.slug.trim() === '' && hasIndexPage && (() => {
+									const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+									return currentIndexPage && currentIndexPage.id !== editingPage.id ? (
+										<p className="text-xs text-red-500 mt-1">Главная страница (index) уже существует. Укажите другой slug.</p>
+									) : null;
+								})()}
 							</div>
 
 							{/* Status */}
@@ -821,7 +923,15 @@ const ProjectPagesPage = () => {
 							</button>
 							<button
 								onClick={handleUpdatePage}
-								disabled={!editingPage.name || !editingPage.title || !editingPage.slug || isUpdating}
+								disabled={
+									!editingPage.name ||
+									!editingPage.title ||
+									(editingPage.slug.trim() === '' && hasIndexPage && (() => {
+										const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+										return currentIndexPage && currentIndexPage.id !== editingPage.id;
+									})()) ||
+									isUpdating
+								}
 								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 							>
 								{isUpdating ? (
@@ -844,6 +954,100 @@ const ProjectPagesPage = () => {
 					<div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-4">
 						<Loader2 size={48} className="animate-spin text-blue-600" />
 						<p className="text-gray-700 font-medium">Updating your page...</p>
+					</div>
+				</div>
+			)}
+
+			{/* Publish Pages Modal */}
+			{isPublishModalOpen && (
+				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+					<div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+						<div className="px-6 py-4 border-b border-gray-200">
+							<h2 className="text-xl font-bold text-gray-900">Опубликовать страницы</h2>
+							<p className="text-sm text-gray-600 mt-1">Выберите страницы для публикации</p>
+						</div>
+
+						<div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+							{/* Select All */}
+							<div className="mb-4">
+								<label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
+									<input
+										type="checkbox"
+										checked={selectedPageIds.length === pages.length}
+										onChange={toggleAllPages}
+										className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
+									/>
+									<span className="font-medium text-gray-900">
+										Выбрать все ({pages.length})
+									</span>
+								</label>
+							</div>
+
+							{/* Page List */}
+							<div className="space-y-2">
+								{pages.map((page) => (
+									<label
+										key={page.id}
+										className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors"
+									>
+										<input
+											type="checkbox"
+											checked={selectedPageIds.includes(page.id)}
+											onChange={() => togglePageSelection(page.id)}
+											className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
+										/>
+										<div className="flex-1">
+											<div className="font-medium text-gray-900">{page.name}</div>
+											<div className="text-sm text-gray-500">{page.slug}</div>
+										</div>
+										<div className={`px-2 py-1 rounded text-xs font-medium ${
+											page.status === 'published'
+												? 'bg-green-100 text-green-700'
+												: 'bg-yellow-100 text-yellow-700'
+										}`}>
+											{page.status === 'published' ? 'Опубликована' : 'Черновик'}
+										</div>
+									</label>
+								))}
+							</div>
+
+							{pages.length === 0 && (
+								<div className="text-center py-8 text-gray-500">
+									Нет доступных страниц для публикации
+								</div>
+							)}
+						</div>
+
+						{/* Buttons */}
+						<div className="px-6 py-4 border-t border-gray-200 flex items-center gap-3">
+							<button
+								onClick={() => {
+									setIsPublishModalOpen(false);
+									setSelectedPageIds([]);
+								}}
+								disabled={isPublishing}
+								className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								Отмена
+							</button>
+							<button
+								onClick={handlePublishPages}
+								disabled={selectedPageIds.length === 0 || isPublishing}
+								className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+							>
+								{isPublishing ? (
+									<>
+										<Loader2 size={18} className="animate-spin" />
+										Публикация...
+									</>
+								) : (
+									<>
+										<Upload size={18} />
+										Опубликовать ({selectedPageIds.length})
+									</>
+								)}
+							</button>
+						</div>
 					</div>
 				</div>
 			)}

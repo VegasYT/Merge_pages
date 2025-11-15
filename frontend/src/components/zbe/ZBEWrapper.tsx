@@ -18,7 +18,6 @@ interface ZBEWrapperProps {
 	zeroLayers: ZeroLayer[];
 	zeroBlockResponsive: ZeroBlockResponsive[];
 	zeroLayerResponsive: ZeroLayerResponsive[];
-	onDataChange?: () => void;
 	onGetData?: (data: any) => void;
 }
 
@@ -38,7 +37,6 @@ export const ZBEWrapper: React.FC<ZBEWrapperProps> = ({
 	zeroLayers,
 	zeroBlockResponsive,
 	zeroLayerResponsive,
-	onDataChange,
 	onGetData,
 }) => {
 	const containerRef = useRef<HTMLDivElement>(null);
@@ -77,7 +75,6 @@ export const ZBEWrapper: React.FC<ZBEWrapperProps> = ({
 					zeroBlockResponsive,
 					zeroLayerResponsive,
 				}}
-				onDataChange={onDataChange}
 				onGetData={onGetData}
 			/>
 		</div>

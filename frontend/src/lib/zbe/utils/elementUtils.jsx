@@ -12,7 +12,7 @@ export const generateElementId = () => {
 /**
  * Создаёт новый элемент с дефолтными значениями
  */
-export const createElement = (typeName, typeConfig, defaultProps, defaultSize, position = { x: 50, y: 50 }, generatedName = '') => {
+export const createElement = (typeName, typeConfig, defaultProps, defaultSize, position = { x: 50, y: 50 }, generatedName = '', zIndex = 0) => {
   return {
     id: generateElementId(),
     type_name: typeName,
@@ -27,18 +27,20 @@ export const createElement = (typeName, typeConfig, defaultProps, defaultSize, p
     },
     borderRadius: typeConfig.defaultProps?.borderRadius || 0,
     opacity: 1,
+    zIndex,
   };
 };
 
 /**
  * Дублирует элемент со смещением
  */
-export const duplicateElement = (element, offset = { x: 20, y: 20 }) => {
+export const duplicateElement = (element, offset = { x: 20, y: 20 }, newZIndex = null) => {
   return {
     ...element,
     id: generateElementId(),
     x: element.x + offset.x,
-    y: element.y + offset.y
+    y: element.y + offset.y,
+    zIndex: newZIndex !== null ? newZIndex : element.zIndex
   };
 };
 
@@ -95,18 +97,42 @@ export const getElementsInSelection = (elements, selectionRect) => {
 };
 
 /**
- * Перемещает элемент на слой вверх или вниз
+ * Перемещает элемент на слой вверх или вниз (изменяет zIndex)
  */
 export const moveElementLayer = (elements, id, direction) => {
-  const idx = elements.findIndex((el) => el.id === id);
-  if (idx === -1) return elements;
+  const element = elements.find((el) => el.id === id);
+  if (!element) return elements;
 
-  const newElements = [...elements];
-  if (direction === "up" && idx < newElements.length - 1) {
-    [newElements[idx], newElements[idx + 1]] = [newElements[idx + 1], newElements[idx]];
-  } else if (direction === "down" && idx > 0) {
-    [newElements[idx], newElements[idx - 1]] = [newElements[idx - 1], newElements[idx]];
+  const currentZIndex = element.zIndex || 0;
+
+  // Получаем все уникальные zIndex и сортируем
+  const allZIndices = [...new Set(elements.map(el => el.zIndex || 0))].sort((a, b) => a - b);
+  const currentIdx = allZIndices.indexOf(currentZIndex);
+
+  let newZIndex = currentZIndex;
+
+  if (direction === "up") {
+    // "up" = увеличить zIndex (стать выше)
+    if (currentIdx < allZIndices.length - 1) {
+      // Берем следующий zIndex и добавляем 1 (чтобы быть точно выше)
+      newZIndex = allZIndices[currentIdx + 1] + 1;
+    } else {
+      // Уже самый высокий, просто увеличиваем на 1
+      newZIndex = currentZIndex + 1;
+    }
+  } else if (direction === "down") {
+    // "down" = уменьшить zIndex (стать ниже)
+    if (currentIdx > 0) {
+      // Берем предыдущий zIndex и вычитаем 1 (чтобы быть точно ниже)
+      const prevZIndex = allZIndices[currentIdx - 1];
+      newZIndex = prevZIndex > 0 ? prevZIndex - 1 : Math.max(0, currentZIndex - 1);
+    } else {
+      // Уже самый низкий, уменьшаем только если > 0
+      newZIndex = Math.max(0, currentZIndex - 1);
+    }
   }
 
-  return newElements;
+  return elements.map(el =>
+    el.id === id ? { ...el, zIndex: newZIndex } : el
+  );
 };

@@ -206,7 +206,7 @@ const ProjectsPage = () => {
 									<div className="absolute bottom-3 left-4 right-4">
 										<div className="flex items-center gap-2 text-white/90 text-xs font-medium">
 											<Globe size={14} />
-											<span className="truncate">{project.subdomain}.yourdomain.com</span>
+											<span className="truncate">{project.subdomain}.landy.website</span>
 										</div>
 									</div>
 								</div>
@@ -262,7 +262,7 @@ const ProjectsPage = () => {
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
-											window.open(`https://${project.subdomain}.yourdomain.com`, '_blank');
+											window.open(`https://${project.subdomain}.landy.website`, '_blank');
 										}}
 										className="flex-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
 									>
@@ -303,7 +303,7 @@ const ProjectsPage = () => {
 										<div className="flex flex-col sm:flex-row sm:items-center gap-1 sm:gap-4 text-xs text-gray-500">
 											<span className="flex items-center gap-1 truncate">
 												<Globe size={12} />
-												<span className="truncate">{project.subdomain}.yourdomain.com</span>
+												<span className="truncate">{project.subdomain}.landy.website</span>
 											</span>
 											<span className="flex items-center gap-1 hidden sm:flex">
 												<Calendar size={12} />
@@ -327,7 +327,7 @@ const ProjectsPage = () => {
 										<button
 											onClick={(e) => {
 												e.stopPropagation();
-												window.open(`https://${project.subdomain}.yourdomain.com`, '_blank');
+												window.open(`https://${project.subdomain}.landy.website`, '_blank');
 											}}
 											className="p-1.5 md:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors hidden sm:block"
 											title="Open"
@@ -427,7 +427,7 @@ const ProjectsPage = () => {
 							onClick={() => {
 								const project = projects.find((p) => p.id === selectedProject);
 								if (project) {
-									navigator.clipboard.writeText(`https://${project.subdomain}.yourdomain.com`);
+									navigator.clipboard.writeText(`https://${project.subdomain}.landy.website`);
 								}
 								setSelectedProject(null);
 								setContextMenuPosition(null);
@@ -441,7 +441,7 @@ const ProjectsPage = () => {
 							onClick={() => {
 								const project = projects.find((p) => p.id === selectedProject);
 								if (project) {
-									window.open(`https://${project.subdomain}.yourdomain.com`, '_blank');
+									window.open(`https://${project.subdomain}.landy.website`, '_blank');
 								}
 								setSelectedProject(null);
 								setContextMenuPosition(null);
@@ -527,7 +527,7 @@ const ProjectsPage = () => {
 										disabled={isCreating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
-									<span className="text-gray-600 font-medium whitespace-nowrap">.yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">.landy.website</span>
 								</div>
 								<p className="text-xs text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens allowed</p>
 							</div>
@@ -629,7 +629,7 @@ const ProjectsPage = () => {
 										disabled={isUpdating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
-									<span className="text-gray-600 font-medium whitespace-nowrap">.yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">.landy.website</span>
 								</div>
 								<p className="text-xs text-gray-500 mt-1">Only lowercase letters, numbers, and hyphens allowed</p>
 							</div>

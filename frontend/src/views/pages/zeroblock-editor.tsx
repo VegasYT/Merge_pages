@@ -21,7 +21,6 @@ import {
 	deleteZeroBlockResponsive,
 	createZeroLayerResponsive,
 	updateZeroLayerResponsive,
-	deleteZeroLayerResponsive,
 } from '@/lib/services/zeroblocks';
 
 interface LoaderData {
@@ -62,6 +61,16 @@ function UnsavedChangesModal({ isOpen, onClose, onConfirm }: UnsavedChangesModal
 	);
 }
 
+// Функция для создания hash состояния данных
+const createDataHash = (data: any): string => {
+	try {
+		return JSON.stringify(data);
+	} catch (error) {
+		console.error('Error creating data hash:', error);
+		return '';
+	}
+};
+
 export const ZeroBlockEditorPage = () => {
 	const {
 		block,
@@ -74,13 +83,20 @@ export const ZeroBlockEditorPage = () => {
 		pageId,
 	} = useLoaderData() as LoaderData;
 	const navigate = useNavigate();
-	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [zbeLoaded, setZbeLoaded] = useState(false);
 	const [zeroBlock, setZeroBlock] = useState<ZeroBlock | null>(initialZeroBlock);
 	const [isCreatingZeroBlock, setIsCreatingZeroBlock] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	// Храним hash сохраненного состояния для отслеживания изменений
+	const savedDataHashRef = useRef<string>('');
+
+	// Храним актуальное состояние сохраненных данных для правильной синхронизации
+	const [savedZeroLayers, setSavedZeroLayers] = useState<ZeroLayer[]>(initialZeroLayers);
+	const [savedZeroBlockResponsive, setSavedZeroBlockResponsive] = useState<ZeroBlockResponsive[]>(initialZeroBlockResponsive);
+	const [savedZeroLayerResponsive, setSavedZeroLayerResponsive] = useState<ZeroLayerResponsive[]>(initialZeroLayerResponsive);
 
 	// Логируем загруженные данные
 	useEffect(() => {
@@ -94,9 +110,16 @@ export const ZeroBlockEditorPage = () => {
 		});
 	}, []);
 
+	// Проверка наличия несохраненных изменений
+	const hasUnsavedChanges = (): boolean => {
+		if (!zbeDataRef.current) return false;
+		const currentHash = createDataHash(zbeDataRef.current);
+		return currentHash !== savedDataHashRef.current && savedDataHashRef.current !== '';
+	};
+
 	// Переход назад
 	const handleGoBack = () => {
-		if (hasUnsavedChanges) {
+		if (hasUnsavedChanges()) {
 			setShowUnsavedModal(true);
 		} else {
 			navigate(`/projects/${projectId}/pages/${pageId}/editor`);
@@ -115,6 +138,12 @@ export const ZeroBlockEditorPage = () => {
 	const handleZBEDataUpdate = (data: any) => {
 		console.log('Received ZBE data:', data);
 		zbeDataRef.current = data;
+
+		// При первой загрузке данных сохраняем hash
+		if (savedDataHashRef.current === '') {
+			savedDataHashRef.current = createDataHash(data);
+			console.log('Initial data hash saved');
+		}
 	};
 
 	// Сохранение данных
@@ -138,44 +167,50 @@ export const ZeroBlockEditorPage = () => {
 			console.log('📐 Syncing breakpoints...');
 
 			// Создаем Map для сопоставления строковых ID (из ZBE) с числовыми ID (из базы)
-			// и Map существующих breakpoints по ширине
+			// и Map существующих breakpoints по ID (не по ширине!)
 			const breakpointIdMap = new Map<string, number>(); // stringId -> numericId
-			const existingBreakpointsByWidth = new Map(initialZeroBlockResponsive.map((bp) => [bp.width, bp]));
+			const existingBreakpointsById = new Map(savedZeroBlockResponsive.map((bp) => [bp.id, bp]));
 			const currentBreakpointIds = new Set<number>();
+			const updatedBreakpoints: ZeroBlockResponsive[] = [];
 
 			// Обрабатываем каждый breakpoint из ZBE
 			for (const bp of breakpoints) {
-				const stringId = bp.id; // это может быть 'desktop', 'tablet', 'mobile'
+				const stringId = bp.id; // это может быть 'bp_16', 'bp_17', etc
+				const responsiveId = bp.responsiveId; // числовой ID из базы данных
 
-				// Ищем существующий breakpoint по ширине
-				const existing = existingBreakpointsByWidth.get(bp.width);
+				// Ищем существующий breakpoint по responsiveId (если есть)
+				const existing = responsiveId ? existingBreakpointsById.get(responsiveId) : null;
 
 				if (existing) {
 					// Обновляем существующий
-					await updateZeroBlockResponsive(existing.id, {
-						width: bp.width,
-						height: bp.height,
-						props: { name: bp.name, ...bp.props },
+					// Округляем width и height до целых чисел
+					const updated = await updateZeroBlockResponsive(existing.id, {
+						width: Math.round(bp.width),
+						height: Math.round(bp.height),
+						props: { name: bp.name, backgroundColor: bp.backgroundColor, alignment: bp.alignment, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, existing.id);
 					currentBreakpointIds.add(existing.id);
+					updatedBreakpoints.push(updated);
 					console.log(`  ✏️ Updated breakpoint ${existing.id} (${bp.name}, ${bp.width}px)`);
 				} else {
-					// Создаем новый
+					// Создаем новый (только если нет responsiveId)
+					// Округляем width и height до целых чисел
 					const created = await createZeroBlockResponsive(zeroBlock.id, {
 						zero_block_id: zeroBlock.id,
-						width: bp.width,
-						height: bp.height,
-						props: { name: bp.name, ...bp.props },
+						width: Math.round(bp.width),
+						height: Math.round(bp.height),
+						props: { name: bp.name, backgroundColor: bp.backgroundColor, alignment: bp.alignment, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, created.id);
 					currentBreakpointIds.add(created.id);
+					updatedBreakpoints.push(created);
 					console.log(`  ➕ Created breakpoint ${created.id} (${bp.name}, ${bp.width}px)`);
 				}
 			}
 
 			// Удаляем breakpoints которых больше нет в ZBE
-			for (const existingBp of initialZeroBlockResponsive) {
+			for (const existingBp of savedZeroBlockResponsive) {
 				if (!currentBreakpointIds.has(existingBp.id)) {
 					await deleteZeroBlockResponsive(existingBp.id);
 					console.log(`  🗑️ Deleted breakpoint ${existingBp.id}`);
@@ -186,8 +221,9 @@ export const ZeroBlockEditorPage = () => {
 			console.log('🎨 Syncing layers...');
 
 			// Создаем Map существующих layers
-			const existingLayersMap = new Map(initialZeroLayers.map((layer) => [layer.id, layer]));
+			const existingLayersMap = new Map(savedZeroLayers.map((layer) => [layer.id, layer]));
 			const currentLayerIds = new Set<number>();
+			const updatedLayers: ZeroLayer[] = [];
 
 			// Обрабатываем каждый element из ZBE
 			for (const element of elements) {
@@ -198,32 +234,34 @@ export const ZeroBlockEditorPage = () => {
 					continue;
 				}
 
-				// position = z-index элемента
-				const zIndex = element.zIndex || 0;
+				// position = zIndex элемента (берём напрямую из zIndex)
+				const position = element.zIndex ?? 0;
 
 				// Если element имеет layerId и существует в базе - обновляем
 				if (element.layerId && existingLayersMap.has(element.layerId)) {
-					await updateZeroLayer(element.layerId, {
+					const updated = await updateZeroLayer(element.layerId, {
 						zero_base_element_id: baseElement.id,
-						position: zIndex,
+						position,
 					});
 					currentLayerIds.add(element.layerId);
-					console.log(`  ✏️ Updated layer ${element.layerId} (${element.name})`);
+					updatedLayers.push(updated);
+					console.log(`  ✏️ Updated layer ${element.layerId} (${element.name}), position: ${position}`);
 				}
 				// Если нет layerId - создаем новый
 				else if (!element.layerId) {
 					const createdLayer = await createZeroLayer(zeroBlock.id, {
 						zero_base_element_id: baseElement.id,
-						position: zIndex,
+						position,
 					});
 					element.layerId = createdLayer.id;
 					currentLayerIds.add(createdLayer.id);
-					console.log(`  ➕ Created layer ${createdLayer.id} (${element.name})`);
+					updatedLayers.push(createdLayer);
+					console.log(`  ➕ Created layer ${createdLayer.id} (${element.name}), position: ${position}`);
 				}
 			}
 
 			// Удаляем layers которых больше нет
-			for (const existingLayer of initialZeroLayers) {
+			for (const existingLayer of savedZeroLayers) {
 				if (!currentLayerIds.has(existingLayer.id)) {
 					await deleteZeroLayer(existingLayer.id);
 					console.log(`  🗑️ Deleted layer ${existingLayer.id}`);
@@ -235,9 +273,9 @@ export const ZeroBlockEditorPage = () => {
 
 			// Создаем Map существующих responsive настроек
 			const existingLayerResponsiveMap = new Map(
-				initialZeroLayerResponsive.map((lr) => [`${lr.zero_layer_id}_${lr.zero_block_responsive_id}`, lr])
+				savedZeroLayerResponsive.map((lr) => [`${lr.zero_layer_id}_${lr.zero_block_responsive_id}`, lr])
 			);
-			const currentLayerResponsiveIds = new Set<number>();
+			const updatedLayerResponsive: ZeroLayerResponsive[] = [];
 
 			// Обрабатываем каждый element для каждого breakpoint
 			for (const element of elements) {
@@ -257,11 +295,14 @@ export const ZeroBlockEditorPage = () => {
 					const key = `${element.layerId}_${numericBpId}`;
 
 					// Получаем данные для этого брейкпоинта (с учетом overrides)
+					// Округляем все значения до целых чисел
 					const bpData = element.breakpointOverrides?.[stringBpId] || {};
-					const x = bpData.x ?? element.x ?? 0;
-					const y = bpData.y ?? element.y ?? 0;
-					const width = bpData.width ?? element.width ?? 100;
-					const height = bpData.height ?? element.height ?? 100;
+					const x = Math.round(bpData.x ?? element.x ?? 0);
+					const y = Math.round(bpData.y ?? element.y ?? 0);
+					const width = Math.round(bpData.width ?? element.width ?? 100);
+					const height = Math.round(bpData.height ?? element.height ?? 100);
+					const borderRadius = Math.round(bpData.borderRadius ?? element.borderRadius ?? 0);
+					const opacity = bpData.opacity ?? element.opacity ?? 1;
 
 					// Собираем ВСЕ данные элемента (props + позиция + размеры)
 					// В data идет всё что нужно для рендеринга элемента
@@ -269,8 +310,10 @@ export const ZeroBlockEditorPage = () => {
 						props: {
 							...element.props,
 							...(bpData.props || {}),
+							borderRadius,
+							opacity,
 						},
-						// Также можно сохранить дополнительные данные если нужно
+						// Также сохраняем дополнительные данные элемента
 						name: element.name,
 						type_name: element.type_name,
 					};
@@ -288,34 +331,39 @@ export const ZeroBlockEditorPage = () => {
 					const existing = existingLayerResponsiveMap.get(key);
 
 					if (existing) {
-						// Обновляем существующую
-						await updateZeroLayerResponsive(existing.id, responsiveData);
-						currentLayerResponsiveIds.add(existing.id);
-						console.log(`  ✏️ Updated layer responsive ${existing.id} (layer ${element.layerId}, bp ${numericBpId})`);
+						// Обновляем существующую (PATCH)
+						const updated = await updateZeroLayerResponsive(existing.id, responsiveData);
+						updatedLayerResponsive.push(updated);
+						console.log(`  ✏️ PATCH layer responsive ${existing.id} (layer ${element.layerId}, bp ${numericBpId})`);
 					} else {
-						// Создаем новую (используем ЧИСЛОВОЙ ID!)
+						// Создаем новую (POST)
 						const created = await createZeroLayerResponsive(element.layerId, {
 							zero_block_responsive_id: numericBpId,
 							zero_block_id: zeroBlock.id,
 							...responsiveData,
 						});
-						currentLayerResponsiveIds.add(created.id);
-						console.log(`  ➕ Created layer responsive ${created.id} (layer ${element.layerId}, bp ${numericBpId}, zb ${zeroBlock.id})`);
+						updatedLayerResponsive.push(created);
+						console.log(`  ➕ POST layer responsive ${created.id} (layer ${element.layerId}, bp ${numericBpId}, zb ${zeroBlock.id})`);
 					}
 				}
 			}
 
-			// Удаляем responsive настройки которых больше нет
-			for (const existing of initialZeroLayerResponsive) {
-				if (!currentLayerResponsiveIds.has(existing.id)) {
-					await deleteZeroLayerResponsive(existing.id);
-					console.log(`  🗑️ Deleted layer responsive ${existing.id}`);
-				}
-			}
+			// Не удаляем layer responsive вручную - бэкенд делает каскадное удаление
+			// при удалении брейкпоинта или слоя
 
 			console.log('✅ All data saved successfully!');
 			toast.success('Изменения сохранены!');
-			setHasUnsavedChanges(false);
+
+			// Обновляем сохраненное состояние для следующего сохранения
+			setSavedZeroBlockResponsive(updatedBreakpoints);
+			setSavedZeroLayers(updatedLayers);
+			setSavedZeroLayerResponsive(updatedLayerResponsive);
+
+			// Обновляем hash сохраненных данных
+			if (zbeDataRef.current) {
+				savedDataHashRef.current = createDataHash(zbeDataRef.current);
+				console.log('Saved data hash updated after save');
+			}
 		} catch (error: any) {
 			console.error('❌ Error saving zeroblock:', error);
 			toast.error(error.response?.data?.message || 'Не удалось сохранить изменения');
@@ -325,9 +373,7 @@ export const ZeroBlockEditorPage = () => {
 	};
 
 	// Обработчик изменения данных в ZBE
-	const handleDataChange = () => {
-		setHasUnsavedChanges(true);
-	};
+	// Больше не нужен, так как мы проверяем изменения по hash
 
 	// Создание ZeroBlock если его еще нет
 	useEffect(() => {
@@ -360,7 +406,7 @@ export const ZeroBlockEditorPage = () => {
 	// Предотвращение закрытия страницы с несохраненными изменениями
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-			if (hasUnsavedChanges) {
+			if (hasUnsavedChanges()) {
 				e.preventDefault();
 				e.returnValue = '';
 			}
@@ -368,7 +414,7 @@ export const ZeroBlockEditorPage = () => {
 
 		window.addEventListener('beforeunload', handleBeforeUnload);
 		return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-	}, [hasUnsavedChanges]);
+	}, []);
 
 	return (
 		<div className="h-screen flex flex-col bg-gray-900">
@@ -388,10 +434,10 @@ export const ZeroBlockEditorPage = () => {
 					</div>
 				</div>
 				<div className="flex items-center gap-3">
-					{hasUnsavedChanges && <span className="text-sm text-yellow-400">Есть несохраненные изменения</span>}
+					{hasUnsavedChanges() && <span className="text-sm text-yellow-400">Есть несохраненные изменения</span>}
 					<button
 						onClick={handleSave}
-						disabled={isSaving || !hasUnsavedChanges}
+						disabled={isSaving}
 						className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{isSaving ? (
@@ -426,7 +472,6 @@ export const ZeroBlockEditorPage = () => {
 						zeroLayers={initialZeroLayers}
 						zeroBlockResponsive={initialZeroBlockResponsive}
 						zeroLayerResponsive={initialZeroLayerResponsive}
-						onDataChange={handleDataChange}
 						onGetData={handleZBEDataUpdate}
 					/>
 				) : (

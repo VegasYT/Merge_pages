@@ -36,3 +36,11 @@ export const updateProject = async (projectId: number, data: UpdateProjectDto): 
 	const response = await apiClient.patch<Project>(`/projects/${projectId}`, data);
 	return response.data;
 };
+
+export interface PublishPagesDto {
+	page_ids: number[];
+}
+
+export const publishPages = async (projectId: number, data: PublishPagesDto): Promise<void> => {
+	await apiClient.post(`/projects/${projectId}/publish`, data);
+};

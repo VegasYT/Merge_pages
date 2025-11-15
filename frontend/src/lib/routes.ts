@@ -11,6 +11,7 @@ import { ProjectsPage } from '@/views/pages/projects';
 import { ProjectPagesPage } from '@/views/pages/project-pages';
 import { PageEditorPage } from '@/views/pages/page-editor';
 import { ZeroBlockEditorPage } from '@/views/pages/zeroblock-editor';
+import { AdminPage } from '@/views/pages/admin-full.jsx';
 import { ErrorPage } from '@/views/pages/error';
 
 import { projectsLoader, projectPagesLoader, pageEditorLoader, zeroBlockEditorLoader } from './loaders';
@@ -45,6 +46,10 @@ const router = createBrowserRouter([
 				path: 'projects/:projectId/pages/:pageId/blocks/:blockId/zeroblock-editor',
 				Component: ZeroBlockEditorPage,
 				loader: zeroBlockEditorLoader,
+			},
+			{
+				path: 'admin',
+				Component: AdminPage,
 			},
 			{
 				path: 'auth',

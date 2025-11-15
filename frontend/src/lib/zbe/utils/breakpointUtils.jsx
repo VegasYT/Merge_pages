@@ -59,9 +59,19 @@ export function mergeElementWithBreakpoint(element, breakpointId) {
  * @returns {Object} - Обновленный элемент
  */
 export function updateElementForBreakpoint(element, updates, activeBreakpointId, defaultBreakpointId) {
+  // Округляем числовые значения позиции и размеров
+  const roundedUpdates = { ...updates };
+  const numericFields = ['x', 'y', 'width', 'height', 'borderRadius'];
+
+  for (const field of numericFields) {
+    if (field in roundedUpdates && typeof roundedUpdates[field] === 'number') {
+      roundedUpdates[field] = Math.round(roundedUpdates[field]);
+    }
+  }
+
   if (activeBreakpointId === defaultBreakpointId) {
     // Обновляем базовые поля
-    return { ...element, ...updates };
+    return { ...element, ...roundedUpdates };
   } else {
     // Обновляем переопределения для текущего брейкпоинта
     const currentOverrides = element.breakpointOverrides?.[activeBreakpointId] || {};
@@ -69,12 +79,12 @@ export function updateElementForBreakpoint(element, updates, activeBreakpointId,
     // Мерджим обновления
     const newOverrides = { ...currentOverrides };
 
-    for (const key in updates) {
+    for (const key in roundedUpdates) {
       if (key === 'props') {
         // Для props делаем глубокий мердж
-        newOverrides.props = deepMerge(currentOverrides.props || {}, updates.props || {});
+        newOverrides.props = deepMerge(currentOverrides.props || {}, roundedUpdates.props || {});
       } else {
-        newOverrides[key] = updates[key];
+        newOverrides[key] = roundedUpdates[key];
       }
     }
 

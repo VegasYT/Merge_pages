@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { useLoaderData } from 'react-router';
+import { useLoaderData, useParams } from 'react-router';
 import PageEditorLayout from '@/components/page-editor/PageEditorLayout';
 import Header from '@/components/page-editor/Header';
 import BlockPreview from '@/components/page-editor/BlockPreview';
@@ -7,6 +7,7 @@ import BlockSettingsModal from '@/components/page-editor/modals/BlockSettingsMod
 import AddBlockModal from '@/components/page-editor/modals/AddBlockModal';
 import { getViewportClass } from '@/lib/utils/style-utils';
 import { createBlock, updateBlock, deleteBlock as deleteBlockApi, updateBlockPosition } from '@/lib/services/blocks';
+import { publishPages } from '@/lib/services/projects';
 import type { Block } from '@/lib/services/blocks';
 import type { BlockTemplate, BlockTemplateCategory } from '@/lib/services/block-templates';
 import { toast } from 'sonner';
@@ -36,13 +37,17 @@ interface Page {
 interface LoaderData {
 	project: Project;
 	page: Page;
+	pages: Page[];
 	blocks: Block[];
 	blockTemplates: BlockTemplate[];
 	categories: BlockTemplateCategory[];
+	zeroblockDataMap: Map<number, any>;
 }
 
 const PageEditorPage = () => {
-	const { project, page, blocks: initialBlocks, blockTemplates, categories } = useLoaderData() as LoaderData;
+	const { project, page: initialPage, pages, blocks: initialBlocks, blockTemplates, categories, zeroblockDataMap } = useLoaderData() as LoaderData;
+	const { projectId } = useParams();
+	const [page, setPage] = useState<Page>(initialPage);
 	const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
 	const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
 	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -231,10 +236,32 @@ const PageEditorPage = () => {
 		setIsAddBlockModalOpen(true);
 	};
 
+	const handlePublish = async () => {
+		try {
+			await publishPages(Number(projectId), { page_ids: [page.id] });
+
+			// Обновляем статус страницы в UI
+			setPage({ ...page, status: 'published' });
+
+			toast.success('Страница успешно опубликована!');
+		} catch (error: any) {
+			console.error('Error publishing page:', error);
+			toast.error(error.response?.data?.message || 'Не удалось опубликовать страницу');
+		}
+	};
+
 	return (
 		<PageEditorLayout>
 			<div className="min-h-screen bg-gray-100">
-				<Header viewportSize={viewportSize} onViewportChange={setViewportSize} onAddBlockClick={() => setIsAddBlockModalOpen(true)} />
+				<Header
+					viewportSize={viewportSize}
+					onViewportChange={setViewportSize}
+					onAddBlockClick={() => setIsAddBlockModalOpen(true)}
+					projectId={projectId!}
+					currentPage={page}
+					allPages={pages}
+					onPublish={handlePublish}
+				/>
 
 				<div className="flex justify-center bg-gray-200 min-h-screen py-8">
 					<div className={`${getViewportClass(viewportSize)} bg-white shadow-lg transition-all duration-500 ease-in-out`}>
@@ -267,6 +294,7 @@ const PageEditorPage = () => {
 									isFirst={block.position === 0}
 									isLast={block.position === blocks.length - 1}
 									viewportSize={viewportSize}
+									zeroblockData={zeroblockDataMap.get(block.id)}
 								/>
 							))
 						)}
