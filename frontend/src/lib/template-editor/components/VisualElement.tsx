@@ -119,6 +119,10 @@ const VisualElement = ({
   const voidElements = ['hr', 'br', 'img', 'input', 'meta', 'link'];
   const isVoidElement = voidElements.includes(element.type);
 
+  // Elements that cannot have text content as children
+  const noTextContentElements = ['textarea', 'select'];
+  const shouldRenderContent = !noTextContentElements.includes(element.type);
+
   return (
     <div
       ref={setRefs}
@@ -228,12 +232,14 @@ const VisualElement = ({
           muted={element.muted}
           autoPlay={element.autoPlay}
           allowFullScreen={element.allowFullScreen}
+          placeholder={element.type === 'textarea' ? (element.placeholder || content || '') : undefined}
+          defaultValue={element.type === 'textarea' ? (content || '') : undefined}
           onClick={(e: any) => {
             e.stopPropagation();
             onSelectElement({ element, path: currentPath });
           }}
         >
-          {content}
+          {shouldRenderContent && content}
 
           {element.children && element.children.length > 0 && (
             <>
