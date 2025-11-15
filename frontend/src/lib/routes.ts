@@ -11,7 +11,7 @@ import { ProjectsPage } from '@/views/pages/projects';
 import { ProjectPagesPage } from '@/views/pages/project-pages';
 import { PageEditorPage } from '@/views/pages/page-editor';
 import { ZeroBlockEditorPage } from '@/views/pages/zeroblock-editor';
-import { AdminPage } from '@/views/pages/admin';
+import { AdminPage } from '@/views/pages/admin-full.jsx';
 import { ErrorPage } from '@/views/pages/error';
 
 import { projectsLoader, projectPagesLoader, pageEditorLoader, zeroBlockEditorLoader } from './loaders';
