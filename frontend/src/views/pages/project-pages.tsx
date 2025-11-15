@@ -101,7 +101,7 @@ const ProjectPagesPage = () => {
 			const createdPage = await createPage(project.id, {
 				name: newPage.name,
 				title: newPage.title,
-				slug: '/' + newPage.slug, // Добавляем "/" при отправке
+				slug: newPage.slug,
 				status: 'draft',
 			});
 
@@ -129,7 +129,7 @@ const ProjectPagesPage = () => {
 			const updatedPage = await updatePage(editingPage.id, {
 				name: editingPage.name,
 				title: editingPage.title,
-				slug: editingPage.slug.startsWith('/') ? editingPage.slug : '/' + editingPage.slug, // Добавляем "/" если его нет
+				slug: editingPage.slug,
 				icon: editingPage.icon,
 				status: editingPage.status,
 			});
@@ -166,9 +166,7 @@ const ProjectPagesPage = () => {
 	};
 
 	const openEditModal = (page: Page) => {
-		// Убираем "/" из slug для редактирования
-		const slugWithoutSlash = page.slug.startsWith('/') ? page.slug.substring(1) : page.slug;
-		setEditingPage({ ...page, slug: slugWithoutSlash });
+		setEditingPage(page);
 		setIsEditPageModalOpen(true);
 		setSelectedPage(null);
 		setContextMenuPosition(null);
