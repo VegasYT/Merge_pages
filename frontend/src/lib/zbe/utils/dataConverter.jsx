@@ -93,6 +93,10 @@ export const convertLayersToElements = (
 
     // Базовые свойства элемента (из default breakpoint)
     // Округляем все числовые значения до целых чисел
+    // Извлекаем props и удаляем borderRadius и opacity, так как они хранятся отдельно в ZBE
+    const propsFromData = defaultResp.data?.props || {};
+    const { borderRadius: propsRadius, opacity: propsOpacity, ...cleanProps } = propsFromData;
+
     const element = {
       id: Date.now() + Math.random(), // Генерируем временный ID для ZBE
       layerId: layer.id, // Сохраняем ID из базы для последующего сохранения
@@ -102,9 +106,9 @@ export const convertLayersToElements = (
       y: Math.round(defaultResp.y ?? 0),
       width: Math.round(defaultResp.width ?? 100),
       height: Math.round(defaultResp.height ?? 100),
-      borderRadius: Math.round(defaultResp.data?.borderRadius ?? 0),
-      opacity: defaultResp.data?.opacity ?? 1,
-      props: defaultResp.data?.props || {},
+      borderRadius: Math.round(propsRadius ?? 0),
+      opacity: propsOpacity ?? 1,
+      props: cleanProps,
       breakpointOverrides: {},
     };
 
@@ -124,19 +128,22 @@ export const convertLayersToElements = (
         const roundedY = Math.round(resp.y ?? element.y);
         const roundedWidth = Math.round(resp.width ?? element.width);
         const roundedHeight = Math.round(resp.height ?? element.height);
-        const roundedBorderRadius = Math.round(resp.data?.borderRadius ?? element.borderRadius);
-        const opacity = resp.data?.opacity ?? element.opacity;
+        const roundedBorderRadius = Math.round(resp.data?.props?.borderRadius ?? element.borderRadius);
+        const opacity = resp.data?.props?.opacity ?? element.opacity;
 
         if (resp.x !== null && roundedX !== element.x) override.x = roundedX;
         if (resp.y !== null && roundedY !== element.y) override.y = roundedY;
         if (resp.width !== null && roundedWidth !== element.width) override.width = roundedWidth;
         if (resp.height !== null && roundedHeight !== element.height) override.height = roundedHeight;
-        if (resp.data?.borderRadius !== undefined && roundedBorderRadius !== element.borderRadius) override.borderRadius = roundedBorderRadius;
-        if (resp.data?.opacity !== undefined && opacity !== element.opacity) override.opacity = opacity;
+        if (resp.data?.props?.borderRadius !== undefined && roundedBorderRadius !== element.borderRadius) override.borderRadius = roundedBorderRadius;
+        if (resp.data?.props?.opacity !== undefined && opacity !== element.opacity) override.opacity = opacity;
 
-        // Добавляем props если они отличаются
+        // Добавляем props если они отличаются (исключая borderRadius и opacity)
         if (resp.data?.props && Object.keys(resp.data.props).length > 0) {
-          override.props = resp.data.props;
+          const { borderRadius: _, opacity: __, ...cleanRespProps } = resp.data.props;
+          if (Object.keys(cleanRespProps).length > 0) {
+            override.props = cleanRespProps;
+          }
         }
 
         // Добавляем override только если есть отличия

@@ -299,12 +299,12 @@ export const ZeroBlockEditorPage = () => {
 						props: {
 							...element.props,
 							...(bpData.props || {}),
+							borderRadius,
+							opacity,
 						},
 						// Также сохраняем дополнительные данные элемента
 						name: element.name,
 						type_name: element.type_name,
-						borderRadius,
-						opacity,
 					};
 
 					const responsiveData = {
