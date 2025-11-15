@@ -1238,7 +1238,7 @@ useEffect(() => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Layers */}
         {showLayersPanel && (
-          <div className="w-64 bg-white border-r border-gray-200 flex flex-col panel">
+          <div className="w-64 bg-white border-r border-gray-200 flex flex-col panel shadow-lg">
           <div className="p-4 border-b border-gray-200">
             <h3 className="font-semibold text-lg text-gray-900">Слои</h3>
           </div>
@@ -1549,7 +1549,7 @@ useEffect(() => {
         </div>
 
         {/* Right Panel - Settings */}
-        <div className="w-80 bg-white border-l border-gray-200 overflow-auto panel">
+        <div className="w-80 bg-white border-l border-gray-200 overflow-auto panel shadow-lg">
           {/* Canvas Settings */}
           <div className="border-b border-gray-200">
             <div className="p-4">
