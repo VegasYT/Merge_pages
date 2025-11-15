@@ -15,7 +15,7 @@ export const RootLayout = () => {
 	}, [accessToken, navigate]);
 
 	return (
-		<div className='flex-1 p-5 rounded-3xl min-h-0'>
+		<div className='flex-1 rounded-3xl min-h-0'>
 			<Outlet />
 			<Toaster />
 		</div>

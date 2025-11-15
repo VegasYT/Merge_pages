@@ -291,7 +291,7 @@ const ProjectPagesPage = () => {
 								key={page.id}
 								className="bg-white rounded-xl shadow-sm hover:shadow-xl transition-all duration-300 overflow-hidden group cursor-pointer border border-gray-200"
 								onClick={() => {
-									console.log('Opening page:', page.slug);
+									navigate(`/projects/${project.id}/pages/${page.id}/editor`);
 								}}
 							>
 								{/* Gradient Header */}
@@ -383,7 +383,7 @@ const ProjectPagesPage = () => {
 								key={page.id}
 								className="bg-white rounded-lg shadow-sm hover:shadow-md transition-all duration-200 overflow-hidden group cursor-pointer border border-gray-200"
 								onClick={() => {
-									console.log('Opening page:', page.slug);
+									navigate(`/projects/${project.id}/pages/${page.id}/editor`);
 								}}
 							>
 								<div className="p-3 md:p-5 flex items-center gap-2 md:gap-4">

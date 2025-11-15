@@ -9,9 +9,11 @@ import { RegisterPage } from '@/views/pages/register';
 import { HomePage } from '@/views/pages/home';
 import { ProjectsPage } from '@/views/pages/projects';
 import { ProjectPagesPage } from '@/views/pages/project-pages';
+import { PageEditorPage } from '@/views/pages/page-editor';
+import { ZeroBlockEditorPage } from '@/views/pages/zeroblock-editor';
 import { ErrorPage } from '@/views/pages/error';
 
-import { projectsLoader, projectPagesLoader } from './loaders';
+import { projectsLoader, projectPagesLoader, pageEditorLoader, zeroBlockEditorLoader } from './loaders';
 
 const router = createBrowserRouter([
 	{
@@ -33,6 +35,16 @@ const router = createBrowserRouter([
 				path: 'projects/:projectId/pages',
 				Component: ProjectPagesPage,
 				loader: projectPagesLoader,
+			},
+			{
+				path: 'projects/:projectId/pages/:pageId/editor',
+				Component: PageEditorPage,
+				loader: pageEditorLoader,
+			},
+			{
+				path: 'projects/:projectId/pages/:pageId/blocks/:blockId/zeroblock-editor',
+				Component: ZeroBlockEditorPage,
+				loader: zeroBlockEditorLoader,
 			},
 			{
 				path: 'auth',
