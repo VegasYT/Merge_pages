@@ -62,6 +62,16 @@ function UnsavedChangesModal({ isOpen, onClose, onConfirm }: UnsavedChangesModal
 	);
 }
 
+// Функция для создания hash состояния данных
+const createDataHash = (data: any): string => {
+	try {
+		return JSON.stringify(data);
+	} catch (error) {
+		console.error('Error creating data hash:', error);
+		return '';
+	}
+};
+
 export const ZeroBlockEditorPage = () => {
 	const {
 		block,
@@ -74,13 +84,15 @@ export const ZeroBlockEditorPage = () => {
 		pageId,
 	} = useLoaderData() as LoaderData;
 	const navigate = useNavigate();
-	const [hasUnsavedChanges, setHasUnsavedChanges] = useState(false);
 	const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [zbeLoaded, setZbeLoaded] = useState(false);
 	const [zeroBlock, setZeroBlock] = useState<ZeroBlock | null>(initialZeroBlock);
 	const [isCreatingZeroBlock, setIsCreatingZeroBlock] = useState(false);
 	const containerRef = useRef<HTMLDivElement>(null);
+
+	// Храним hash сохраненного состояния для отслеживания изменений
+	const savedDataHashRef = useRef<string>('');
 
 	// Логируем загруженные данные
 	useEffect(() => {
@@ -94,9 +106,16 @@ export const ZeroBlockEditorPage = () => {
 		});
 	}, []);
 
+	// Проверка наличия несохраненных изменений
+	const hasUnsavedChanges = (): boolean => {
+		if (!zbeDataRef.current) return false;
+		const currentHash = createDataHash(zbeDataRef.current);
+		return currentHash !== savedDataHashRef.current && savedDataHashRef.current !== '';
+	};
+
 	// Переход назад
 	const handleGoBack = () => {
-		if (hasUnsavedChanges) {
+		if (hasUnsavedChanges()) {
 			setShowUnsavedModal(true);
 		} else {
 			navigate(`/projects/${projectId}/pages/${pageId}/editor`);
@@ -115,6 +134,12 @@ export const ZeroBlockEditorPage = () => {
 	const handleZBEDataUpdate = (data: any) => {
 		console.log('Received ZBE data:', data);
 		zbeDataRef.current = data;
+
+		// При первой загрузке данных сохраняем hash
+		if (savedDataHashRef.current === '') {
+			savedDataHashRef.current = createDataHash(data);
+			console.log('Initial data hash saved');
+		}
 	};
 
 	// Сохранение данных
@@ -265,6 +290,8 @@ export const ZeroBlockEditorPage = () => {
 					const y = Math.round(bpData.y ?? element.y ?? 0);
 					const width = Math.round(bpData.width ?? element.width ?? 100);
 					const height = Math.round(bpData.height ?? element.height ?? 100);
+					const borderRadius = Math.round(bpData.borderRadius ?? element.borderRadius ?? 0);
+					const opacity = bpData.opacity ?? element.opacity ?? 1;
 
 					// Собираем ВСЕ данные элемента (props + позиция + размеры)
 					// В data идет всё что нужно для рендеринга элемента
@@ -273,9 +300,11 @@ export const ZeroBlockEditorPage = () => {
 							...element.props,
 							...(bpData.props || {}),
 						},
-						// Также можно сохранить дополнительные данные если нужно
+						// Также сохраняем дополнительные данные элемента
 						name: element.name,
 						type_name: element.type_name,
+						borderRadius,
+						opacity,
 					};
 
 					const responsiveData = {
@@ -318,7 +347,12 @@ export const ZeroBlockEditorPage = () => {
 
 			console.log('✅ All data saved successfully!');
 			toast.success('Изменения сохранены!');
-			setHasUnsavedChanges(false);
+
+			// Обновляем hash сохраненных данных
+			if (zbeDataRef.current) {
+				savedDataHashRef.current = createDataHash(zbeDataRef.current);
+				console.log('Saved data hash updated after save');
+			}
 		} catch (error: any) {
 			console.error('❌ Error saving zeroblock:', error);
 			toast.error(error.response?.data?.message || 'Не удалось сохранить изменения');
@@ -328,9 +362,7 @@ export const ZeroBlockEditorPage = () => {
 	};
 
 	// Обработчик изменения данных в ZBE
-	const handleDataChange = () => {
-		setHasUnsavedChanges(true);
-	};
+	// Больше не нужен, так как мы проверяем изменения по hash
 
 	// Создание ZeroBlock если его еще нет
 	useEffect(() => {
@@ -363,7 +395,7 @@ export const ZeroBlockEditorPage = () => {
 	// Предотвращение закрытия страницы с несохраненными изменениями
 	useEffect(() => {
 		const handleBeforeUnload = (e: BeforeUnloadEvent) => {
-			if (hasUnsavedChanges) {
+			if (hasUnsavedChanges()) {
 				e.preventDefault();
 				e.returnValue = '';
 			}
@@ -371,7 +403,7 @@ export const ZeroBlockEditorPage = () => {
 
 		window.addEventListener('beforeunload', handleBeforeUnload);
 		return () => window.removeEventListener('beforeunload', handleBeforeUnload);
-	}, [hasUnsavedChanges]);
+	}, []);
 
 	return (
 		<div className="h-screen flex flex-col bg-gray-900">
@@ -391,10 +423,10 @@ export const ZeroBlockEditorPage = () => {
 					</div>
 				</div>
 				<div className="flex items-center gap-3">
-					{hasUnsavedChanges && <span className="text-sm text-yellow-400">Есть несохраненные изменения</span>}
+					{hasUnsavedChanges() && <span className="text-sm text-yellow-400">Есть несохраненные изменения</span>}
 					<button
 						onClick={handleSave}
-						disabled={isSaving || !hasUnsavedChanges}
+						disabled={isSaving}
 						className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
 					>
 						{isSaving ? (
@@ -429,7 +461,6 @@ export const ZeroBlockEditorPage = () => {
 						zeroLayers={initialZeroLayers}
 						zeroBlockResponsive={initialZeroBlockResponsive}
 						zeroLayerResponsive={initialZeroLayerResponsive}
-						onDataChange={handleDataChange}
 						onGetData={handleZBEDataUpdate}
 					/>
 				) : (

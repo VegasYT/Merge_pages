@@ -44,7 +44,7 @@ import BreakpointPanel from "./components/BreakpointPanel.jsx";
 import { mergeElementWithBreakpoint } from "./utils/breakpointUtils.jsx";
 import ContextMenu from "./components/ContextMenu.jsx";
 
-export default function App({ initialData, onDataChange, onGetData }) {
+export default function App({ initialData, onGetData }) {
   // Загружаем типы элементов
   const {
     getTypeConfig,
@@ -216,17 +216,12 @@ export default function App({ initialData, onDataChange, onGetData }) {
     }
   }, [initialData, breakpoints]);
 
-  // Отслеживаем изменения данных и вызываем onDataChange
+  // Отслеживаем изменения данных и передаем их в wrapper
   useEffect(() => {
     // Пропускаем первый рендер (инициализацию)
     if (isFirstRender.current) {
       isFirstRender.current = false;
       return;
-    }
-
-    if (onDataChange) {
-      console.log('Data changed, calling onDataChange');
-      onDataChange();
     }
 
     // Передаем актуальные данные в wrapper
@@ -236,7 +231,7 @@ export default function App({ initialData, onDataChange, onGetData }) {
         breakpoints,
       });
     }
-  }, [elements, breakpoints, onDataChange, onGetData]);
+  }, [elements, breakpoints, onGetData]);
 
   // measureTextSize и generateName перенесены в utils/textUtils.js
 

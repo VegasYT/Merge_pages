@@ -102,8 +102,8 @@ export const convertLayersToElements = (
       y: Math.round(defaultResp.y ?? 0),
       width: Math.round(defaultResp.width ?? 100),
       height: Math.round(defaultResp.height ?? 100),
-      borderRadius: 0,
-      opacity: 1,
+      borderRadius: Math.round(defaultResp.data?.borderRadius ?? 0),
+      opacity: defaultResp.data?.opacity ?? 1,
       props: defaultResp.data?.props || {},
       breakpointOverrides: {},
     };
@@ -124,11 +124,15 @@ export const convertLayersToElements = (
         const roundedY = Math.round(resp.y ?? element.y);
         const roundedWidth = Math.round(resp.width ?? element.width);
         const roundedHeight = Math.round(resp.height ?? element.height);
+        const roundedBorderRadius = Math.round(resp.data?.borderRadius ?? element.borderRadius);
+        const opacity = resp.data?.opacity ?? element.opacity;
 
         if (resp.x !== null && roundedX !== element.x) override.x = roundedX;
         if (resp.y !== null && roundedY !== element.y) override.y = roundedY;
         if (resp.width !== null && roundedWidth !== element.width) override.width = roundedWidth;
         if (resp.height !== null && roundedHeight !== element.height) override.height = roundedHeight;
+        if (resp.data?.borderRadius !== undefined && roundedBorderRadius !== element.borderRadius) override.borderRadius = roundedBorderRadius;
+        if (resp.data?.opacity !== undefined && opacity !== element.opacity) override.opacity = opacity;
 
         // Добавляем props если они отличаются
         if (resp.data?.props && Object.keys(resp.data.props).length > 0) {

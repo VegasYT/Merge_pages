@@ -61,7 +61,7 @@ export function mergeElementWithBreakpoint(element, breakpointId) {
 export function updateElementForBreakpoint(element, updates, activeBreakpointId, defaultBreakpointId) {
   // Округляем числовые значения позиции и размеров
   const roundedUpdates = { ...updates };
-  const numericFields = ['x', 'y', 'width', 'height'];
+  const numericFields = ['x', 'y', 'width', 'height', 'borderRadius'];
 
   for (const field of numericFields) {
     if (field in roundedUpdates && typeof roundedUpdates[field] === 'number') {
