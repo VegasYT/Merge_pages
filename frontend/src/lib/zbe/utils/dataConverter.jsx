@@ -28,8 +28,8 @@ export const convertResponsiveToBreakpoints = (zeroBlockResponsive) => {
   return sorted.map((resp, index) => ({
     id: `bp_${resp.id}`, // Используем числовой ID с префиксом
     name: resp.props?.name || `Breakpoint ${resp.width}px`,
-    width: resp.width,
-    height: resp.height || 1080,
+    width: Math.round(resp.width),
+    height: Math.round(resp.height || 1080),
     backgroundColor: resp.props?.backgroundColor || '#ffffff',
     isDefault: index === 0, // Первый (самый широкий) - default
     responsiveId: resp.id, // Сохраняем числовой ID для сохранения
@@ -92,15 +92,16 @@ export const convertLayersToElements = (
     }
 
     // Базовые свойства элемента (из default breakpoint)
+    // Округляем все числовые значения до целых чисел
     const element = {
       id: Date.now() + Math.random(), // Генерируем временный ID для ZBE
       layerId: layer.id, // Сохраняем ID из базы для последующего сохранения
       type_name: baseElement.type_name,
       name: defaultResp.data?.name || baseElement.display_name || baseElement.type_name,
-      x: defaultResp.x ?? 0,
-      y: defaultResp.y ?? 0,
-      width: defaultResp.width ?? 100,
-      height: defaultResp.height ?? 100,
+      x: Math.round(defaultResp.x ?? 0),
+      y: Math.round(defaultResp.y ?? 0),
+      width: Math.round(defaultResp.width ?? 100),
+      height: Math.round(defaultResp.height ?? 100),
       borderRadius: 0,
       opacity: 1,
       props: defaultResp.data?.props || {},
@@ -118,10 +119,16 @@ export const convertLayersToElements = (
         const override = {};
 
         // Добавляем только те значения, которые отличаются от default
-        if (resp.x !== null && resp.x !== element.x) override.x = resp.x;
-        if (resp.y !== null && resp.y !== element.y) override.y = resp.y;
-        if (resp.width !== null && resp.width !== element.width) override.width = resp.width;
-        if (resp.height !== null && resp.height !== element.height) override.height = resp.height;
+        // Округляем все числовые значения до целых чисел
+        const roundedX = Math.round(resp.x ?? element.x);
+        const roundedY = Math.round(resp.y ?? element.y);
+        const roundedWidth = Math.round(resp.width ?? element.width);
+        const roundedHeight = Math.round(resp.height ?? element.height);
+
+        if (resp.x !== null && roundedX !== element.x) override.x = roundedX;
+        if (resp.y !== null && roundedY !== element.y) override.y = roundedY;
+        if (resp.width !== null && roundedWidth !== element.width) override.width = roundedWidth;
+        if (resp.height !== null && roundedHeight !== element.height) override.height = roundedHeight;
 
         // Добавляем props если они отличаются
         if (resp.data?.props && Object.keys(resp.data.props).length > 0) {

@@ -152,9 +152,10 @@ export const ZeroBlockEditorPage = () => {
 
 				if (existing) {
 					// Обновляем существующий
+					// Округляем width и height до целых чисел
 					await updateZeroBlockResponsive(existing.id, {
-						width: bp.width,
-						height: bp.height,
+						width: Math.round(bp.width),
+						height: Math.round(bp.height),
 						props: { name: bp.name, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, existing.id);
@@ -162,10 +163,11 @@ export const ZeroBlockEditorPage = () => {
 					console.log(`  ✏️ Updated breakpoint ${existing.id} (${bp.name}, ${bp.width}px)`);
 				} else {
 					// Создаем новый
+					// Округляем width и height до целых чисел
 					const created = await createZeroBlockResponsive(zeroBlock.id, {
 						zero_block_id: zeroBlock.id,
-						width: bp.width,
-						height: bp.height,
+						width: Math.round(bp.width),
+						height: Math.round(bp.height),
 						props: { name: bp.name, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, created.id);
@@ -257,11 +259,12 @@ export const ZeroBlockEditorPage = () => {
 					const key = `${element.layerId}_${numericBpId}`;
 
 					// Получаем данные для этого брейкпоинта (с учетом overrides)
+					// Округляем все значения до целых чисел
 					const bpData = element.breakpointOverrides?.[stringBpId] || {};
-					const x = bpData.x ?? element.x ?? 0;
-					const y = bpData.y ?? element.y ?? 0;
-					const width = bpData.width ?? element.width ?? 100;
-					const height = bpData.height ?? element.height ?? 100;
+					const x = Math.round(bpData.x ?? element.x ?? 0);
+					const y = Math.round(bpData.y ?? element.y ?? 0);
+					const width = Math.round(bpData.width ?? element.width ?? 100);
+					const height = Math.round(bpData.height ?? element.height ?? 100);
 
 					// Собираем ВСЕ данные элемента (props + позиция + размеры)
 					// В data идет всё что нужно для рендеринга элемента
