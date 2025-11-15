@@ -168,18 +168,19 @@ export const ZeroBlockEditorPage = () => {
 			console.log('📐 Syncing breakpoints...');
 
 			// Создаем Map для сопоставления строковых ID (из ZBE) с числовыми ID (из базы)
-			// и Map существующих breakpoints по ширине
+			// и Map существующих breakpoints по ID (не по ширине!)
 			const breakpointIdMap = new Map<string, number>(); // stringId -> numericId
-			const existingBreakpointsByWidth = new Map(savedZeroBlockResponsive.map((bp) => [bp.width, bp]));
+			const existingBreakpointsById = new Map(savedZeroBlockResponsive.map((bp) => [bp.id, bp]));
 			const currentBreakpointIds = new Set<number>();
 			const updatedBreakpoints: ZeroBlockResponsive[] = [];
 
 			// Обрабатываем каждый breakpoint из ZBE
 			for (const bp of breakpoints) {
-				const stringId = bp.id; // это может быть 'desktop', 'tablet', 'mobile'
+				const stringId = bp.id; // это может быть 'bp_16', 'bp_17', etc
+				const responsiveId = bp.responsiveId; // числовой ID из базы данных
 
-				// Ищем существующий breakpoint по ширине
-				const existing = existingBreakpointsByWidth.get(bp.width);
+				// Ищем существующий breakpoint по responsiveId (если есть)
+				const existing = responsiveId ? existingBreakpointsById.get(responsiveId) : null;
 
 				if (existing) {
 					// Обновляем существующий
@@ -194,7 +195,7 @@ export const ZeroBlockEditorPage = () => {
 					updatedBreakpoints.push(updated);
 					console.log(`  ✏️ Updated breakpoint ${existing.id} (${bp.name}, ${bp.width}px)`);
 				} else {
-					// Создаем новый
+					// Создаем новый (только если нет responsiveId)
 					// Округляем width и height до целых чисел
 					const created = await createZeroBlockResponsive(zeroBlock.id, {
 						zero_block_id: zeroBlock.id,
