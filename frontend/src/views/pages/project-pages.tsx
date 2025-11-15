@@ -87,9 +87,18 @@ const ProjectPagesPage = () => {
 	const publishedCount = pages.filter(p => p.status === 'published').length;
 	const draftCount = pages.filter(p => p.status === 'draft').length;
 
+	// Проверяем, существует ли уже страница с slug "index" или "/index"
+	const hasIndexPage = pages.some(p => p.slug === '/index' || p.slug === 'index');
+
 	const handleCreatePage = async () => {
 		if (!newPage.name || !newPage.title) {
 			toast.error('Please fill in all required fields');
+			return;
+		}
+
+		// Проверяем, пытается ли пользователь создать вторую страницу с пустым slug
+		if (newPage.slug.trim() === '' && hasIndexPage) {
+			toast.error('Главная страница (index) уже существует. Укажите другой slug.');
 			return;
 		}
 
@@ -119,6 +128,16 @@ const ProjectPagesPage = () => {
 		if (!editingPage || !editingPage.name || !editingPage.title) {
 			toast.error('Please fill in all required fields');
 			return;
+		}
+
+		// Проверяем, пытается ли пользователь изменить slug на пустой, если уже есть другая страница с index
+		if (editingPage.slug.trim() === '' && hasIndexPage) {
+			// Проверяем, что это не та же самая страница с index
+			const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+			if (currentIndexPage && currentIndexPage.id !== editingPage.id) {
+				toast.error('Главная страница (index) уже существует. Укажите другой slug.');
+				return;
+			}
 		}
 
 		setIsUpdating(true);
@@ -735,6 +754,9 @@ const ProjectPagesPage = () => {
 									/>
 								</div>
 								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
+								{newPage.slug.trim() === '' && hasIndexPage && (
+									<p className="text-xs text-red-500 mt-1">Главная страница (index) уже существует. Укажите другой slug.</p>
+								)}
 							</div>
 						</div>
 
@@ -752,7 +774,7 @@ const ProjectPagesPage = () => {
 							</button>
 							<button
 								onClick={handleCreatePage}
-								disabled={!newPage.name || !newPage.title || !newPage.slug || isCreating}
+								disabled={!newPage.name || !newPage.title || (newPage.slug.trim() === '' && hasIndexPage) || isCreating}
 								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 							>
 								{isCreating ? (
@@ -835,6 +857,12 @@ const ProjectPagesPage = () => {
 									/>
 								</div>
 								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
+								{editingPage.slug.trim() === '' && hasIndexPage && (() => {
+									const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+									return currentIndexPage && currentIndexPage.id !== editingPage.id ? (
+										<p className="text-xs text-red-500 mt-1">Главная страница (index) уже существует. Укажите другой slug.</p>
+									) : null;
+								})()}
 							</div>
 
 							{/* Status */}
@@ -883,7 +911,15 @@ const ProjectPagesPage = () => {
 							</button>
 							<button
 								onClick={handleUpdatePage}
-								disabled={!editingPage.name || !editingPage.title || !editingPage.slug || isUpdating}
+								disabled={
+									!editingPage.name ||
+									!editingPage.title ||
+									(editingPage.slug.trim() === '' && hasIndexPage && (() => {
+										const currentIndexPage = pages.find(p => p.slug === '/index' || p.slug === 'index');
+										return currentIndexPage && currentIndexPage.id !== editingPage.id;
+									})()) ||
+									isUpdating
+								}
 								className="flex-1 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
 							>
 								{isUpdating ? (
