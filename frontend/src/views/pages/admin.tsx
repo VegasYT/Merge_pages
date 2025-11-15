@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Code, Save, Settings } from 'lucide-react';
+import { Code, Save, Settings, FileJson } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DndContext,
@@ -14,6 +14,7 @@ import ElementsSidebar from '@/lib/template-editor/components/ElementsSidebar';
 import VisualElement from '@/lib/template-editor/components/VisualElement';
 import DropZone from '@/lib/template-editor/components/DropZone';
 import EmptyCanvasDropZone from '@/lib/template-editor/components/EmptyCanvasDropZone';
+import JsonEditorModal from '@/lib/template-editor/components/JsonEditorModal';
 
 // Template Editor Hooks
 import { useDndHandlers } from '@/lib/template-editor/hooks/useDndHandlers';
@@ -30,6 +31,9 @@ export const AdminPage = () => {
 	const [defaultData, setDefaultData] = useState<Record<string, any>>({});
 	const [previewStyles, setPreviewStyles] = useState<Record<string, any>>({});
 	const [javascript, setJavascript] = useState('');
+
+	// JSON editor modal state
+	const [isJsonEditorOpen, setIsJsonEditorOpen] = useState(false);
 
 	// dnd-kit state
 	const [activeId, setActiveId] = useState<string | null>(null);
@@ -259,6 +263,14 @@ export const AdminPage = () => {
 		}
 	};
 
+	// Handle JSON editor save
+	const handleJsonSave = (data: { structure: any[]; editableStyles: Record<string, any>; defaultData: Record<string, any> }) => {
+		setStructure(data.structure);
+		setEditableStyles(data.editableStyles);
+		setDefaultData(data.defaultData);
+		toast.success('JSON updated successfully!');
+	};
+
 	return (
 		<DndContext
 			sensors={sensors}
@@ -288,13 +300,23 @@ export const AdminPage = () => {
 							/>
 						</div>
 					</div>
-					<button
-						onClick={handleSave}
-						className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
-					>
-						<Save size={18} />
-						Save Template
-					</button>
+					<div className="flex items-center gap-3">
+						<button
+							onClick={() => setIsJsonEditorOpen(true)}
+							className="flex items-center gap-2 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition font-medium"
+							title="Edit JSON manually"
+						>
+							<FileJson size={18} />
+							Edit JSON
+						</button>
+						<button
+							onClick={handleSave}
+							className="flex items-center gap-2 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition font-medium"
+						>
+							<Save size={18} />
+							Save Template
+						</button>
+					</div>
 				</div>
 
 				{/* Main Content */}
@@ -621,6 +643,16 @@ if (slider) {
 					</div>
 				</div>
 			</div>
+
+			{/* JSON Editor Modal */}
+			<JsonEditorModal
+				isOpen={isJsonEditorOpen}
+				onClose={() => setIsJsonEditorOpen(false)}
+				structure={structure}
+				editableStyles={editableStyles}
+				defaultData={defaultData}
+				onSave={handleJsonSave}
+			/>
 		</DndContext>
 	);
 };
