@@ -238,25 +238,6 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 				overflow: 'hidden',
 			}}
 		>
-			{/* Информация о текущем брейкпоинте (для отладки) */}
-			<div
-				style={{
-					position: 'absolute',
-					top: '10px',
-					right: '10px',
-					padding: '8px 12px',
-					background: 'rgba(0, 0, 0, 0.7)',
-					color: 'white',
-					fontSize: '12px',
-					borderRadius: '4px',
-					zIndex: 1000,
-				}}
-			>
-				{activeResponsive.props?.name || 'Unknown'} ({activeResponsive.width}x{activeResponsive.height})
-				<br />
-				Container: {containerWidth}px
-			</div>
-
 			{/* Рендер всех элементов */}
 			{layersData.map((layer) => renderElement(layer))}
 		</div>
