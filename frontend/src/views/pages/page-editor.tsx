@@ -45,8 +45,9 @@ interface LoaderData {
 }
 
 const PageEditorPage = () => {
-	const { project, page, pages, blocks: initialBlocks, blockTemplates, categories, zeroblockDataMap } = useLoaderData() as LoaderData;
+	const { project, page: initialPage, pages, blocks: initialBlocks, blockTemplates, categories, zeroblockDataMap } = useLoaderData() as LoaderData;
 	const { projectId } = useParams();
+	const [page, setPage] = useState<Page>(initialPage);
 	const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
 	const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
 	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -238,6 +239,10 @@ const PageEditorPage = () => {
 	const handlePublish = async () => {
 		try {
 			await publishPages(Number(projectId), { page_ids: [page.id] });
+
+			// Обновляем статус страницы в UI
+			setPage({ ...page, status: 'published' });
+
 			toast.success('Страница успешно опубликована!');
 		} catch (error: any) {
 			console.error('Error publishing page:', error);

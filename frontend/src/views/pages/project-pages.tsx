@@ -223,6 +223,14 @@ const ProjectPagesPage = () => {
 		setIsPublishing(true);
 		try {
 			await publishPages(project.id, { page_ids: selectedPageIds });
+
+			// Обновляем статус опубликованных страниц в UI
+			setPages(pages.map(p =>
+				selectedPageIds.includes(p.id)
+					? { ...p, status: 'published' as const }
+					: p
+			));
+
 			toast.success(`${selectedPageIds.length} ${selectedPageIds.length === 1 ? 'страница опубликована' : 'страницы опубликованы'} успешно!`);
 			setIsPublishModalOpen(false);
 			setSelectedPageIds([]);
@@ -243,10 +251,14 @@ const ProjectPagesPage = () => {
 	};
 
 	const toggleAllPages = () => {
-		if (selectedPageIds.length === pages.length) {
+		// Получаем только неопубликованные страницы
+		const draftPages = pages.filter(p => p.status === 'draft');
+		const draftPageIds = draftPages.map(p => p.id);
+
+		if (selectedPageIds.length === draftPageIds.length) {
 			setSelectedPageIds([]);
 		} else {
-			setSelectedPageIds(pages.map(p => p.id));
+			setSelectedPageIds(draftPageIds);
 		}
 	};
 
@@ -961,42 +973,50 @@ const ProjectPagesPage = () => {
 								<label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
 									<input
 										type="checkbox"
-										checked={selectedPageIds.length === pages.length}
+										checked={selectedPageIds.length === pages.filter(p => p.status === 'draft').length && pages.filter(p => p.status === 'draft').length > 0}
 										onChange={toggleAllPages}
 										className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
 									/>
 									<span className="font-medium text-gray-900">
-										Выбрать все ({pages.length})
+										Выбрать все черновики ({pages.filter(p => p.status === 'draft').length})
 									</span>
 								</label>
 							</div>
 
 							{/* Page List */}
 							<div className="space-y-2">
-								{pages.map((page) => (
-									<label
-										key={page.id}
-										className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors"
-									>
-										<input
-											type="checkbox"
-											checked={selectedPageIds.includes(page.id)}
-											onChange={() => togglePageSelection(page.id)}
-											className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
-										/>
-										<div className="flex-1">
-											<div className="font-medium text-gray-900">{page.name}</div>
-											<div className="text-sm text-gray-500">/{page.slug}</div>
-										</div>
-										<div className={`px-2 py-1 rounded text-xs font-medium ${
-											page.status === 'published'
-												? 'bg-green-100 text-green-700'
-												: 'bg-yellow-100 text-yellow-700'
-										}`}>
-											{page.status}
-										</div>
-									</label>
-								))}
+								{pages.map((page) => {
+									const isPublished = page.status === 'published';
+									return (
+										<label
+											key={page.id}
+											className={`flex items-center gap-3 p-4 rounded-lg border transition-colors ${
+												isPublished
+													? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
+													: 'border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer'
+											}`}
+										>
+											<input
+												type="checkbox"
+												checked={selectedPageIds.includes(page.id)}
+												onChange={() => !isPublished && togglePageSelection(page.id)}
+												disabled={isPublished}
+												className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50 disabled:cursor-not-allowed"
+											/>
+											<div className="flex-1">
+												<div className="font-medium text-gray-900">{page.name}</div>
+												<div className="text-sm text-gray-500">{page.slug}</div>
+											</div>
+											<div className={`px-2 py-1 rounded text-xs font-medium ${
+												page.status === 'published'
+													? 'bg-green-100 text-green-700'
+													: 'bg-yellow-100 text-yellow-700'
+											}`}>
+												{page.status === 'published' ? 'Опубликована' : 'Черновик'}
+											</div>
+										</label>
+									);
+								})}
 							</div>
 
 							{pages.length === 0 && (

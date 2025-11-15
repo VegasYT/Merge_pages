@@ -6,6 +6,7 @@ interface Page {
 	id: number;
 	name: string;
 	slug: string;
+	status: 'published' | 'draft';
 }
 
 interface HeaderProps {
@@ -125,10 +126,15 @@ export default function Header({
 					<div className="flex gap-2">
 						<button
 							onClick={onPublish}
-							className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
+							disabled={currentPage.status === 'published'}
+							className={`flex items-center gap-2 px-4 py-2 rounded-lg transition ${
+								currentPage.status === 'published'
+									? 'bg-gray-300 text-gray-500 cursor-not-allowed'
+									: 'bg-green-600 text-white hover:bg-green-700'
+							}`}
 						>
 							<Upload size={20} />
-							Опубликовать
+							{currentPage.status === 'published' ? 'Опубликовано' : 'Опубликовать'}
 						</button>
 						<button
 							onClick={onAddBlockClick}
