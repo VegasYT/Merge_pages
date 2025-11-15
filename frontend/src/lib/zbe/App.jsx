@@ -1155,21 +1155,21 @@ useEffect(() => {
 
   // --- Render ---
   return (
-    <div className="flex flex-col h-screen bg-gray-900 text-white">
+    <div className="flex flex-col h-screen bg-gray-50 text-gray-900">
       {/* Top Toolbar */}
-      <div className="h-16 bg-gray-800 border-b border-gray-700 flex items-center px-6 gap-6 panel">
+      <div className="h-16 bg-white border-b border-gray-200 flex items-center px-6 gap-6 panel shadow-sm">
         {/* Левая часть - кнопка добавления элементов */}
         <div className="flex items-center gap-3 min-w-[212px]">
           <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen(!menuOpen)}
-              className="flex items-center justify-center w-10 h-10 bg-purple-600 rounded-full hover:bg-purple-700 transition"
+              className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition shadow-lg shadow-blue-500/30"
             >
               <Plus size={22} />
             </button>
 
             {menuOpen && (
-              <div className="absolute top-12 left-0 bg-gray-800 border border-gray-700 rounded-lg shadow-xl p-2 w-48 animate-fadeIn z-50">
+              <div className="absolute top-12 left-0 bg-white border border-gray-200 rounded-lg shadow-xl p-2 w-48 animate-fadeIn z-50">
                 {getAvailableTypes().map((typeInfo) => {
                   const IconComponent = {
                     Type,
@@ -1182,7 +1182,7 @@ useEffect(() => {
                     <button
                       key={typeInfo.type_name}
                       onClick={() => { setMenuOpen(false); addElementToCanvas(typeInfo.type_name); }}
-                      className="flex items-center gap-2 w-full px-3 py-2 rounded hover:bg-gray-700 transition"
+                      className="flex items-center gap-2 w-full px-3 py-2 rounded hover:bg-gray-100 transition text-gray-700"
                     >
                       <IconComponent size={18} />
                       <span>{typeInfo.display_name}</span>
@@ -1210,24 +1210,24 @@ useEffect(() => {
         <div className="flex items-center gap-2">
           <button
             onClick={handleZoomOut}
-            className="p-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
+            className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors text-gray-700"
             title="Отдалить"
           >
             <ZoomOut size={20} />
           </button>
-          <div className="px-3 py-1 bg-gray-700 rounded min-w-[80px] text-center">
+          <div className="px-3 py-1 bg-gray-100 text-gray-900 rounded min-w-[80px] text-center font-medium">
             {Math.round(zoom * 100)}%
           </div>
           <button
             onClick={handleZoomIn}
-            className="p-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
+            className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors text-gray-700"
             title="Приблизить"
           >
             <ZoomIn size={20} />
           </button>
           <button
             onClick={handleResetView}
-            className="p-2 bg-gray-700 rounded hover:bg-gray-600 transition-colors"
+            className="p-2 bg-gray-100 rounded hover:bg-gray-200 transition-colors text-gray-700"
             title="Сбросить вид"
           >
             <Maximize2 size={20} />
@@ -1238,9 +1238,9 @@ useEffect(() => {
       <div className="flex flex-1 overflow-hidden">
         {/* Left Panel - Layers */}
         {showLayersPanel && (
-          <div className="w-64 bg-gray-800 border-r border-gray-700 flex flex-col panel">
-          <div className="p-4 border-b border-gray-700">
-            <h3 className="font-semibold text-lg">Слои</h3>
+          <div className="w-64 bg-white border-r border-gray-200 flex flex-col panel shadow-lg">
+          <div className="p-4 border-b border-gray-200">
+            <h3 className="font-semibold text-lg text-gray-900">Слои</h3>
           </div>
           <div className="flex-1 overflow-auto p-2">
             {[...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0)).map((element) => (
@@ -1282,7 +1282,7 @@ useEffect(() => {
                   }
                 }}
                 className={`p-3 mb-2 rounded cursor-pointer flex items-center justify-between ${
-                  (selectedElement === element.id || selectedElements.includes(element.id)) ? "bg-purple-600" : "bg-gray-700 hover:bg-gray-650"
+                  (selectedElement === element.id || selectedElements.includes(element.id)) ? "bg-blue-100 border border-blue-300" : "bg-gray-50 hover:bg-gray-100 border border-gray-200"
                 }`}
               >
                 <div className="flex items-center gap-2 flex-1 min-w-0">
@@ -1297,7 +1297,7 @@ useEffect(() => {
                     }[typeConfig.icon] || Square;
                     return <IconComponent size={16} className="flex-shrink-0" />;
                   })()}
-                  <span className="text-sm truncate">
+                  <span className="text-sm truncate text-gray-900">
                     {(() => {
                       const typeConfig = getTypeConfig(element.type_name);
                       return element.props?.content || typeConfig.display_name || typeConfig.type_name;
@@ -1310,7 +1310,7 @@ useEffect(() => {
                       e.stopPropagation();
                       moveLayer(element.id, "up");
                     }}
-                    className="p-1 hover:bg-gray-600 rounded"
+                    className="p-1 hover:bg-gray-200 rounded text-gray-600"
                   >
                     <MoveUp size={14} />
                   </button>
@@ -1319,7 +1319,7 @@ useEffect(() => {
                       e.stopPropagation();
                       moveLayer(element.id, "down");
                     }}
-                    className="p-1 hover:bg-gray-600 rounded"
+                    className="p-1 hover:bg-gray-200 rounded text-gray-600"
                   >
                     <MoveDown size={14} />
                   </button>
@@ -1333,23 +1333,25 @@ useEffect(() => {
         {/* Canvas */}
         <div
           ref={containerRef}
-          className="flex-1 overflow-hidden bg-gray-850 relative"
+          className="flex-1 overflow-hidden bg-gray-100 relative"
           onMouseDown={handleCanvasMouseDown}
           style={{ isolation: "isolate" }}
         >
-          <div className="absolute top-4 right-4 bg-gray-800 px-3 py-2 rounded-lg text-xs z-10 max-w-xs">
-            <div className="font-semibold mb-1">Управление:</div>
-            <div>Выделение областью - зажать ЛКМ и тянуть</div>
-            <div>Ctrl + область - добавить к выделению</div>
-            <div>Ctrl + клик - выбор нескольких элементов</div>
-            <div>Ctrl + C / Ctrl + V - копировать/вставить</div>
-            <div>Ctrl + Z / Ctrl + Shift + Z - отменить/повторить</div>
-            <div>Delete - удалить выбранные элементы</div>
-            <div>Alt - показать расстояния</div>
-            <div>Ctrl + колесико - зум к курсору</div>
-            <div>Средняя кнопка мыши - панорамирование</div>
-            <div>Колесико - вверх/вниз</div>
-            <div>Shift + колесико - влево/вправо</div>
+          <div className="absolute top-4 right-4 bg-white border border-gray-200 px-2 py-1.5 rounded-lg text-xs z-10 max-w-[240px] shadow-sm text-gray-700 leading-tight">
+            <div className="font-semibold mb-0.5 text-[11px]">Управление:</div>
+            <div className="text-[10px] space-y-0.5">
+              <div>Выделение областью - зажать ЛКМ</div>
+              <div>Ctrl + область - добавить</div>
+              <div>Ctrl + клик - множество</div>
+              <div>Ctrl + C / V - копировать</div>
+              <div>Ctrl + Z - отменить</div>
+              <div>Delete - удалить</div>
+              <div>Alt - расстояния</div>
+              <div>Ctrl + колесико - зум</div>
+              <div>СКМ - панорамирование</div>
+              <div>Колесико - вверх/вниз</div>
+              <div>Shift + колесико - влево/вправо</div>
+            </div>
           </div>
 
           <div
@@ -1549,21 +1551,21 @@ useEffect(() => {
         </div>
 
         {/* Right Panel - Settings */}
-        <div className="w-80 bg-gray-800 border-l border-gray-700 overflow-auto panel">
+        <div className="w-80 bg-white border-l border-gray-200 overflow-auto panel shadow-lg">
           {/* Canvas Settings */}
-          <div className="border-b border-gray-700">
+          <div className="border-b border-gray-200">
             <div className="p-4">
-              <h3 className="font-semibold text-lg flex items-center gap-2">
+              <h3 className="font-semibold text-lg flex items-center gap-2 text-gray-900">
                 <Settings size={20} />
                 Настройки канваса
               </h3>
             </div>
             <div className="px-4 pb-4 space-y-4">
-              <div className="text-xs text-gray-400 mb-2">
+              <div className="text-xs text-gray-500 mb-2">
                 Ширина определяется активным брейкпоинтом: {activeBreakpoint.width}px
               </div>
               <div>
-                <label className="block text-sm mb-2">Высота</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Высота</label>
                 <input
                   type="number"
                   value={tempCanvasHeight}
@@ -1574,24 +1576,24 @@ useEffect(() => {
                       applyCanvasHeight();
                     }
                   }}
-                  className="w-full bg-gray-700 rounded px-3 py-2"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Цвет фона</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Цвет фона</label>
                 <input
                   type="color"
                   value={activeBreakpoint.backgroundColor}
                   onChange={(e) => updateBreakpoint(activeBreakpointId, { backgroundColor: e.target.value })}
-                  className="w-full h-10 rounded"
+                  className="w-full h-10 rounded-lg border border-gray-300"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2">Выравнивание блока</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Выравнивание блока</label>
                 <select
                   value={activeBreakpoint.alignment || 'left'}
                   onChange={(e) => updateBreakpoint(activeBreakpointId, { alignment: e.target.value })}
-                  className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="left">Слева</option>
                   <option value="center">По центру</option>
@@ -1603,11 +1605,11 @@ useEffect(() => {
 
           {/* Clipboard Info */}
           {clipboard.length > 0 && (
-            <div className="border-b border-gray-700 bg-blue-900/20 p-4">
-              <div className="text-sm text-blue-300">
-                В буфере обмена: <span className="font-semibold text-blue-400">{clipboard.length}</span> {clipboard.length === 1 ? 'элемент' : 'элементов'}
+            <div className="border-b border-gray-200 bg-blue-50 p-4">
+              <div className="text-sm text-blue-700">
+                В буфере обмена: <span className="font-semibold text-blue-900">{clipboard.length}</span> {clipboard.length === 1 ? 'элемент' : 'элементов'}
               </div>
-              <div className="text-xs text-blue-400/60 mt-1">
+              <div className="text-xs text-blue-600 mt-1">
                 Нажмите Ctrl+V для вставки
               </div>
             </div>
@@ -1615,11 +1617,11 @@ useEffect(() => {
 
           {/* Multiple Selection Info */}
           {selectedElements.length > 1 && (
-            <div className="border-b border-gray-700 bg-gray-750 p-4">
-              <div className="text-sm text-gray-300">
-                Выбрано элементов: <span className="font-semibold text-purple-400">{selectedElements.length}</span>
+            <div className="border-b border-gray-200 bg-gray-50 p-4">
+              <div className="text-sm text-gray-700">
+                Выбрано элементов: <span className="font-semibold text-blue-600">{selectedElements.length}</span>
               </div>
-              <div className="text-xs text-gray-400 mt-1">
+              <div className="text-xs text-gray-600 mt-1">
                 Настройки доступны только для одного элемента
               </div>
             </div>
@@ -1627,12 +1629,12 @@ useEffect(() => {
 
           {/* Element Settings */}
           {selectedElementData && selectedElements.length === 0 && (
-            <div className="border-b border-gray-700">
+            <div className="border-b border-gray-200">
               <div
-                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-750"
+                className="p-4 flex items-center justify-between cursor-pointer hover:bg-gray-50"
                 onClick={() => setShowElementSettings(!showElementSettings)}
               >
-                <h3 className="font-semibold text-lg flex items-center gap-2">
+                <h3 className="font-semibold text-lg flex items-center gap-2 text-gray-900">
                   <Settings size={20} />
                   Настройки элемента
                 </h3>
@@ -1642,7 +1644,7 @@ useEffect(() => {
                       e.stopPropagation();
                       duplicateElementLocal(selectedElementData.id);
                     }}
-                    className="p-2 hover:bg-gray-700 rounded"
+                    className="p-2 hover:bg-gray-200 rounded text-gray-600"
                   >
                     <Copy size={16} />
                   </button>
@@ -1651,63 +1653,63 @@ useEffect(() => {
                       e.stopPropagation();
                       deleteSelectedElement();
                     }}
-                    className="p-2 hover:bg-red-600 rounded"
+                    className="p-2 hover:bg-red-100 rounded text-red-600"
                   >
                     <Trash2 size={16} />
                   </button>
-                  {showElementSettings ? <ChevronUp size={20} /> : <ChevronDown size={20} />}
+                  {showElementSettings ? <ChevronUp size={20} className="text-gray-600" /> : <ChevronDown size={20} className="text-gray-600" />}
                 </div>
               </div>
 
               {showElementSettings && (
                 <div className="px-4 pb-4 space-y-4">
                   {activeBreakpointId !== defaultBreakpoint.id && (
-                    <div className="bg-blue-900/30 border border-blue-500/50 rounded px-3 py-2 text-xs text-blue-300">
+                    <div className="bg-blue-50 border border-blue-200 rounded px-3 py-2 text-xs text-blue-700">
                       Изменения сохраняются для брейкпоинта: <span className="font-semibold">{activeBreakpoint.name}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm mb-2">X: {Math.round(selectedElementData.x)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">X</label>
                       <input
                         type="number"
                         value={Math.round(selectedElementData.x)}
                         onChange={(e) => updateElement(selectedElementData.id, { x: Number(e.target.value) })}
-                        className="w-full bg-gray-700 rounded px-3 py-2"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-2">Y: {Math.round(selectedElementData.y)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Y</label>
                       <input
                         type="number"
                         value={Math.round(selectedElementData.y)}
                         onChange={(e) => updateElement(selectedElementData.id, { y: Number(e.target.value) })}
-                        className="w-full bg-gray-700 rounded px-3 py-2"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm mb-2">Ширина: {Math.round(selectedElementData.width)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ширина</label>
                       <input
                         type="number"
                         value={tempSize.width}
                         onChange={(e) => setTempSize({ ...tempSize, width: e.target.value })}
                         onBlur={applyTempSize}
                         onKeyDown={applyTempSize}
-                        className="w-full bg-gray-700 rounded px-3 py-2"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-2">Высота: {Math.round(selectedElementData.height)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Высота</label>
                       <input
                         type="number"
                         value={tempSize.height}
                         onChange={(e) => setTempSize({ ...tempSize, height: e.target.value })}
                         onBlur={applyTempSize}
                         onKeyDown={applyTempSize}
-                        className="w-full bg-gray-700 rounded px-3 py-2"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -1721,13 +1723,13 @@ useEffect(() => {
                   />
 
                   {/* Разделитель */}
-                  <div className="border-t border-gray-600 my-4"></div>
+                  <div className="border-t border-gray-200 my-4"></div>
 
                   {/* Общие настройки для всех типов */}
-                  <div className="text-sm font-semibold mb-2 text-gray-300">Общие настройки</div>
+                  <div className="text-base font-semibold mb-3 text-gray-900">Общие настройки</div>
 
                   <div>
-                    <label className="block text-sm mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Скругление углов: {selectedElementData.borderRadius}px
                     </label>
                     <input
@@ -1736,12 +1738,12 @@ useEffect(() => {
                       max="150"
                       value={selectedElementData.borderRadius}
                       onChange={(e) => updateElement(selectedElementData.id, { borderRadius: Number(e.target.value) })}
-                      className="w-full"
+                      className="w-full accent-blue-600"
                     />
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Прозрачность: {Math.round(selectedElementData.opacity * 100)}%
                     </label>
                     <input
@@ -1751,7 +1753,7 @@ useEffect(() => {
                       step="0.1"
                       value={selectedElementData.opacity}
                       onChange={(e) => updateElement(selectedElementData.id, { opacity: Number(e.target.value) })}
-                      className="w-full"
+                      className="w-full accent-blue-600"
                     />
                   </div>
                 </div>

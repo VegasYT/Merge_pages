@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
-import { Plus, Search, Globe, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Loader2 } from 'lucide-react';
-import { createProject, updateProject } from '@/lib/services/projects';
+import { Plus, Search, Globe, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Loader2, LogOut } from 'lucide-react';
+import { createProject, updateProject, deleteProject } from '@/lib/services/projects';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 import { toast } from 'sonner';
 
 interface Project {
@@ -17,6 +19,7 @@ interface Project {
 const ProjectsPage = () => {
 	const initialProjects = useLoaderData() as Project[];
 	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [projects, setProjects] = useState<Project[]>(initialProjects);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -124,6 +127,41 @@ const ProjectsPage = () => {
 		setContextMenuPosition(null);
 	};
 
+	const handleDeleteProject = async (projectId: number) => {
+		if (!window.confirm('Are you sure you want to delete this project? This action cannot be undone.')) {
+			return;
+		}
+
+		try {
+			await deleteProject(projectId);
+
+			// Remove project from the list
+			setProjects(projects.filter(p => p.id !== projectId));
+
+			// Close context menu
+			setSelectedProject(null);
+			setContextMenuPosition(null);
+
+			toast.success('Project deleted successfully!');
+		} catch (error: any) {
+			console.error('Error deleting project:', error);
+			toast.error(error.response?.data?.message || 'Failed to delete project. Please try again.');
+		}
+	};
+
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
+	};
+
 	return (
 		<div className="standard-tailwind-styles min-h-screen bg-gray-50">
 			{/* Header */}
@@ -135,14 +173,24 @@ const ProjectsPage = () => {
 							<p className="text-xs md:text-sm text-gray-600 mt-1 hidden sm:block">Manage your landing pages</p>
 						</div>
 
-						<button
-							onClick={() => setIsAddProjectModalOpen(true)}
-							className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
-						>
-							<Plus size={18} className="md:w-5 md:h-5" />
-							<span className="hidden sm:inline">New Project</span>
-							<span className="sm:hidden">New</span>
-						</button>
+						<div className="flex items-center gap-2 md:gap-3">
+							<button
+								onClick={handleLogout}
+								className="px-3 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-1.5 md:gap-2 text-sm md:text-base"
+								title="Logout"
+							>
+								<LogOut size={18} className="md:w-5 md:h-5" />
+								<span className="hidden md:inline">Logout</span>
+							</button>
+							<button
+								onClick={() => setIsAddProjectModalOpen(true)}
+								className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
+							>
+								<Plus size={18} className="md:w-5 md:h-5" />
+								<span className="hidden sm:inline">New Project</span>
+								<span className="sm:hidden">New</span>
+							</button>
+						</div>
 					</div>
 
 					{/* Search and Filters */}
@@ -454,9 +502,9 @@ const ProjectsPage = () => {
 						<hr className="my-1" />
 						<button
 							onClick={() => {
-								console.log('Delete:', selectedProject);
-								setSelectedProject(null);
-								setContextMenuPosition(null);
+								if (selectedProject) {
+									handleDeleteProject(selectedProject);
+								}
 							}}
 							className="w-full px-4 py-2 text-left text-sm text-red-600 hover:bg-red-50 rounded-lg flex items-center gap-3"
 						>

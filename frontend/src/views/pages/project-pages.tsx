@@ -1,8 +1,10 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
-import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft, Upload } from 'lucide-react';
+import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft, Upload, LogOut } from 'lucide-react';
 import { createPage, updatePage, deletePage, updatePageStatus } from '@/lib/services/pages';
 import { publishPages } from '@/lib/services/projects';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 import type { Page } from '@/lib/services/pages';
 import { toast } from 'sonner';
 
@@ -24,6 +26,7 @@ interface LoaderData {
 const ProjectPagesPage = () => {
 	const { project, pages: initialPages } = useLoaderData() as LoaderData;
 	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [pages, setPages] = useState<Page[]>(initialPages);
 	const [searchQuery, setSearchQuery] = useState('');
 	const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -258,6 +261,19 @@ const ProjectPagesPage = () => {
 		}
 	};
 
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
+	};
+
 	return (
 		<div className="standard-tailwind-styles min-h-screen bg-gray-50">
 			{/* Header */}
@@ -278,7 +294,15 @@ const ProjectPagesPage = () => {
 							</div>
 						</div>
 
-						<div className="flex gap-2">
+						<div className="flex items-center gap-2 md:gap-3">
+							<button
+								onClick={handleLogout}
+								className="px-3 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-all duration-200 flex items-center gap-1.5 md:gap-2 text-sm md:text-base"
+								title="Logout"
+							>
+								<LogOut size={18} className="md:w-5 md:h-5" />
+								<span className="hidden md:inline">Logout</span>
+							</button>
 							<button
 								onClick={() => setIsPublishModalOpen(true)}
 								className="px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-green-500/30 text-sm md:text-base"

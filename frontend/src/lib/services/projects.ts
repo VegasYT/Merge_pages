@@ -44,3 +44,7 @@ export interface PublishPagesDto {
 export const publishPages = async (projectId: number, data: PublishPagesDto): Promise<void> => {
 	await apiClient.post(`/projects/${projectId}/publish`, data);
 };
+
+export const deleteProject = async (projectId: number): Promise<void> => {
+	await apiClient.delete(`/projects/${projectId}`);
+};

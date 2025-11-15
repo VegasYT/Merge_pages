@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, LogOut } from 'lucide-react';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 import { toast } from 'sonner';
 import { ZBEWrapper } from '@/components/zbe/ZBEWrapper';
 import type { Block } from '@/lib/services/blocks';
@@ -83,6 +85,7 @@ export const ZeroBlockEditorPage = () => {
 		pageId,
 	} = useLoaderData() as LoaderData;
 	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [zbeLoaded, setZbeLoaded] = useState(false);
@@ -129,6 +132,19 @@ export const ZeroBlockEditorPage = () => {
 	const handleConfirmExit = () => {
 		setShowUnsavedModal(false);
 		navigate(`/projects/${projectId}/pages/${pageId}/editor`);
+	};
+
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
 	};
 
 	// Ref для хранения данных из ZBE
@@ -417,28 +433,35 @@ export const ZeroBlockEditorPage = () => {
 	}, []);
 
 	return (
-		<div className="h-screen flex flex-col bg-gray-900">
+		<div className="h-screen flex flex-col bg-gray-50">
 			{/* Верхняя панель с кнопками */}
-			<div className="bg-gray-800 border-b border-gray-700 px-6 py-4 flex items-center justify-between">
+			<div className="bg-white border-b px-6 py-4 flex items-center justify-between shadow-sm">
 				<div className="flex items-center gap-4">
 					<button
 						onClick={handleGoBack}
-						className="flex items-center gap-2 px-4 py-2 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition"
+						className="flex items-center gap-2 px-4 py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-lg transition"
 					>
 						<ArrowLeft size={20} />
 						Назад
 					</button>
-					<div className="text-white">
-						<h1 className="text-lg font-semibold">Редактор Zero Block</h1>
-						<p className="text-sm text-gray-400">Block ID: {block.id}</p>
+					<div>
+						<h1 className="text-lg font-semibold text-gray-900">Редактор Zero Block</h1>
+						<p className="text-sm text-gray-600">Block ID: {block.id}</p>
 					</div>
 				</div>
 				<div className="flex items-center gap-3">
-					{hasUnsavedChanges() && <span className="text-sm text-yellow-400">Есть несохраненные изменения</span>}
+					{hasUnsavedChanges() && <span className="text-sm text-yellow-600 font-medium">Есть несохраненные изменения</span>}
+					<button
+						onClick={handleLogout}
+						className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+						title="Logout"
+					>
+						<LogOut size={20} />
+					</button>
 					<button
 						onClick={handleSave}
 						disabled={isSaving}
-						className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed"
+						className="flex items-center gap-2 px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg transition disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-blue-500/30"
 					>
 						{isSaving ? (
 							<>
@@ -458,10 +481,10 @@ export const ZeroBlockEditorPage = () => {
 			{/* Контейнер для ZBE */}
 			<div ref={containerRef} className="flex-1 overflow-hidden">
 				{isCreatingZeroBlock ? (
-					<div className="flex items-center justify-center h-full text-white">
+					<div className="flex items-center justify-center h-full bg-white">
 						<div className="text-center">
 							<Loader2 size={48} className="text-blue-500 animate-spin mb-4" />
-							<p className="text-lg">Создание ZeroBlock...</p>
+							<p className="text-lg text-gray-700">Создание ZeroBlock...</p>
 						</div>
 					</div>
 				) : zbeLoaded && zeroBlock ? (
@@ -475,7 +498,7 @@ export const ZeroBlockEditorPage = () => {
 						onGetData={handleZBEDataUpdate}
 					/>
 				) : (
-					<div className="flex items-center justify-center h-full">
+					<div className="flex items-center justify-center h-full bg-white">
 						<Loader2 size={48} className="text-blue-500 animate-spin" />
 					</div>
 				)}

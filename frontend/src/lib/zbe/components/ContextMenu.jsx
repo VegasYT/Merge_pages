@@ -53,7 +53,7 @@ export default function ContextMenu({
 
       {/* Само меню */}
       <div
-        className="fixed bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 z-50 min-w-[180px]"
+        className="fixed bg-white border border-gray-200 rounded-lg shadow-xl py-2 z-50 min-w-[180px]"
         style={{
           left: adjustedX,
           top: adjustedY,
@@ -135,8 +135,8 @@ export default function ContextMenu({
 function MenuItem({ icon: Icon, label, onClick, danger = false }) {
   return (
     <button
-      className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-700 transition ${
-        danger ? "text-red-400 hover:text-red-300" : "text-white"
+      className={`w-full px-4 py-2 text-left flex items-center gap-3 hover:bg-gray-100 transition ${
+        danger ? "text-red-600 hover:text-red-700" : "text-gray-700"
       }`}
       onClick={(e) => {
         e.stopPropagation();
@@ -159,7 +159,7 @@ function MenuItemWithSubmenu({ icon: Icon, label, showSubmenu, onMouseEnter, onM
       onMouseEnter={onMouseEnter}
       onMouseLeave={onMouseLeave}
     >
-      <div className="w-full px-4 py-2 flex items-center gap-3 hover:bg-gray-700 transition cursor-pointer">
+      <div className="w-full px-4 py-2 flex items-center gap-3 hover:bg-gray-100 transition cursor-pointer text-gray-700">
         {Icon && <Icon size={16} />}
         <span className="text-sm flex-1">{label}</span>
         <ChevronRight size={14} />
@@ -168,7 +168,7 @@ function MenuItemWithSubmenu({ icon: Icon, label, showSubmenu, onMouseEnter, onM
       {/* Подменю */}
       {showSubmenu && (
         <div
-          className="absolute left-full top-0 bg-gray-800 border border-gray-700 rounded-lg shadow-xl py-2 min-w-[160px] z-50"
+          className="absolute left-full top-0 bg-white border border-gray-200 rounded-lg shadow-xl py-2 min-w-[160px] z-50"
           style={{
             pointerEvents: 'auto',
             marginLeft: '-1px' // Убираем промежуток, наслаивая границы
@@ -185,5 +185,5 @@ function MenuItemWithSubmenu({ icon: Icon, label, showSubmenu, onMouseEnter, onM
  * Разделитель между пунктами меню
  */
 function MenuDivider() {
-  return <div className="my-1 border-t border-gray-700" />;
+  return <div className="my-1 border-t border-gray-200" />;
 }
