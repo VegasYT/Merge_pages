@@ -241,7 +241,7 @@ const VisualElement = ({
         >
           {shouldRenderContent && content}
 
-          {element.children && element.children.length > 0 && (
+          {element.children && element.children.length > 0 && element.type !== 'textarea' && (
             <>
               {element.children.map((child: any, index: number) => (
                 <React.Fragment key={`${currentPath.join('-')}-${index}`}>
