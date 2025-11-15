@@ -80,11 +80,11 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "textarea") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <textarea
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none"
           rows="3"
         />
       </div>
@@ -95,13 +95,13 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "string") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <input
           type="text"
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholder}
-          className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
     );
@@ -111,12 +111,12 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "color") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <input
           type="color"
           value={localValue || "#000000"}
           onChange={(e) => handleColorChange(e.target.value)}
-          className="w-full h-10 rounded border border-gray-300"
+          className="w-full h-10 rounded-lg border border-gray-300"
         />
       </div>
     );
@@ -126,7 +126,7 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "range") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">
+        <label className="block text-sm font-medium text-gray-700 mb-2">
           {label}: {localValue}{units ?? ""}
         </label>
         <input
@@ -146,7 +146,7 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "number") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <input
           type="number"
           min={min}
@@ -154,7 +154,7 @@ function PropField({ propName, propConfig, value, onChange }) {
           step={step ?? 1}
           value={value ?? 0}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         />
       </div>
     );
@@ -164,11 +164,11 @@ function PropField({ propName, propConfig, value, onChange }) {
   if (type === "select") {
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <select
           value={value || ""}
           onChange={(e) => onChange(e.target.value)}
-          className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+          className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
         >
           {options?.map((option) => {
             const optionValue = typeof option === "string" ? option : option.value;
@@ -282,9 +282,9 @@ function PropField({ propName, propConfig, value, onChange }) {
 
     return (
       <div>
-        <label className="block text-sm mb-2 text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
         <button
-          className="px-3 py-2 bg-blue-600 rounded text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30"
+          className="px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30 transition-colors"
           onClick={() => setIsOpen(true)}
         >
           Загрузить
@@ -292,30 +292,30 @@ function PropField({ propName, propConfig, value, onChange }) {
 
         {/* Показываем текущий URL, если есть */}
         {value && (
-          <div className="text-xs mt-2 text-gray-600 break-all">
+          <div className="text-xs mt-2 text-gray-500 break-all">
             Текущее значение: {value}
           </div>
         )}
 
         {/* Модалка */}
         {isOpen && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-            <div className="bg-white p-6 rounded-xl w-96 relative space-y-4">
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+            <div className="bg-white p-6 rounded-xl w-full max-w-md relative space-y-4">
               {/* Закрыть */}
               <button
-                className="absolute top-2 right-2 text-gray-600 hover:text-gray-900"
+                className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
                 onClick={() => setIsOpen(false)}
               >
                 ✖
               </button>
 
-              <h3 className="text-lg font-semibold mb-2 text-gray-900">Загрузка файла</h3>
+              <h2 className="text-2xl font-bold text-gray-900">Загрузка файла</h2>
 
               {/* DROP AREA */}
               <div
                 onDragOver={(e) => e.preventDefault()}
                 onDrop={handleDrop}
-                className="border border-gray-300 border-dashed rounded p-6 text-center cursor-pointer hover:bg-gray-50 transition text-gray-700"
+                className="border-2 border-gray-300 border-dashed rounded-lg p-8 text-center cursor-pointer hover:bg-gray-50 transition-colors text-gray-700"
                 onClick={() => fileInputRef.current.click()}
               >
                 Перетащи файл сюда<br />или нажми чтобы выбрать
@@ -328,18 +328,18 @@ function PropField({ propName, propConfig, value, onChange }) {
               </div>
 
               {/* Подсказка о вставке из буфера */}
-              <div className="text-xs text-gray-600 text-center">
+              <div className="text-xs text-gray-500 text-center">
                 Или нажми Ctrl+V, чтобы вставить из буфера обмена
               </div>
 
               {/* Маленький текст → ввод ссылки */}
-              <div className="text-xs text-gray-600">
+              <div className="text-sm font-medium text-gray-700">
                 Или укажи ссылку на файл:
               </div>
 
               <input
                 type="text"
-                className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 placeholder="https://example.com/image.jpg"
                 value={urlInput}
                 onChange={(e) => setUrlInput(e.target.value)}
@@ -347,7 +347,7 @@ function PropField({ propName, propConfig, value, onChange }) {
 
               <button
                 onClick={uploadUrl}
-                className="w-full bg-blue-600 px-3 py-2 rounded text-white hover:bg-blue-700 shadow-lg shadow-blue-500/30"
+                className="w-full px-4 py-2 bg-blue-600 rounded-lg text-white hover:bg-blue-700 transition-colors shadow-lg shadow-blue-500/30 font-medium"
               >
                 Отправить ссылку
               </button>
@@ -366,8 +366,8 @@ function PropField({ propName, propConfig, value, onChange }) {
   // Fallback для неизвестных типов
   return (
     <div>
-      <label className="block text-sm mb-2 text-gray-700">{label}</label>
-      <div className="text-xs text-gray-600">Неподдерживаемый тип: {type}</div>
+      <label className="block text-sm font-medium text-gray-700 mb-2">{label}</label>
+      <div className="text-xs text-gray-500">Неподдерживаемый тип: {type}</div>
     </div>
   );
 }
@@ -399,10 +399,10 @@ function ArrayField({ label, value = [], onChange, itemProps = {} }) {
   return (
     <div>
       <div className="flex items-center justify-between mb-2">
-        <label className="block text-sm text-gray-700">{label}</label>
+        <label className="block text-sm font-medium text-gray-700">{label}</label>
         <button
           onClick={addItem}
-          className="p-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition"
+          className="p-1.5 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
           title="Добавить элемент"
         >
           <Plus size={16} />
@@ -411,12 +411,12 @@ function ArrayField({ label, value = [], onChange, itemProps = {} }) {
 
       <div className="space-y-3">
         {value.map((item, index) => (
-          <div key={index} className="bg-gray-50 border border-gray-200 rounded p-3 space-y-2">
+          <div key={index} className="bg-gray-50 border border-gray-200 rounded-lg p-4 space-y-3">
             <div className="flex items-center justify-between mb-2">
-              <span className="text-xs text-gray-600">Элемент {index + 1}</span>
+              <span className="text-sm font-medium text-gray-700">Элемент {index + 1}</span>
               <button
                 onClick={() => removeItem(index)}
-                className="p-1 hover:bg-red-100 rounded transition text-red-600"
+                className="p-1.5 hover:bg-red-100 rounded-lg transition-colors text-red-600"
                 title="Удалить элемент"
               >
                 <Trash2 size={14} />
@@ -441,7 +441,7 @@ function ArrayField({ label, value = [], onChange, itemProps = {} }) {
         ))}
 
         {value.length === 0 && (
-          <div className="text-xs text-gray-600 text-center py-2">
+          <div className="text-sm text-gray-500 text-center py-4">
             Нет элементов. Нажмите + чтобы добавить.
           </div>
         )}

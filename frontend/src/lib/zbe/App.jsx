@@ -1559,11 +1559,11 @@ useEffect(() => {
               </h3>
             </div>
             <div className="px-4 pb-4 space-y-4">
-              <div className="text-xs text-gray-600 mb-2">
+              <div className="text-xs text-gray-500 mb-2">
                 Ширина определяется активным брейкпоинтом: {activeBreakpoint.width}px
               </div>
               <div>
-                <label className="block text-sm mb-2 text-gray-700">Высота</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Высота</label>
                 <input
                   type="number"
                   value={tempCanvasHeight}
@@ -1574,24 +1574,24 @@ useEffect(() => {
                       applyCanvasHeight();
                     }
                   }}
-                  className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2 text-gray-700">Цвет фона</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Цвет фона</label>
                 <input
                   type="color"
                   value={activeBreakpoint.backgroundColor}
                   onChange={(e) => updateBreakpoint(activeBreakpointId, { backgroundColor: e.target.value })}
-                  className="w-full h-10 rounded border border-gray-300"
+                  className="w-full h-10 rounded-lg border border-gray-300"
                 />
               </div>
               <div>
-                <label className="block text-sm mb-2 text-gray-700">Выравнивание блока</label>
+                <label className="block text-sm font-medium text-gray-700 mb-2">Выравнивание блока</label>
                 <select
                   value={activeBreakpoint.alignment || 'left'}
                   onChange={(e) => updateBreakpoint(activeBreakpointId, { alignment: e.target.value })}
-                  className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                 >
                   <option value="left">Слева</option>
                   <option value="center">По центру</option>
@@ -1666,48 +1666,48 @@ useEffect(() => {
                       Изменения сохраняются для брейкпоинта: <span className="font-semibold">{activeBreakpoint.name}</span>
                     </div>
                   )}
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm mb-2 text-gray-700">X: {Math.round(selectedElementData.x)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">X</label>
                       <input
                         type="number"
                         value={Math.round(selectedElementData.x)}
                         onChange={(e) => updateElement(selectedElementData.id, { x: Number(e.target.value) })}
-                        className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-2 text-gray-700">Y: {Math.round(selectedElementData.y)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Y</label>
                       <input
                         type="number"
                         value={Math.round(selectedElementData.y)}
                         onChange={(e) => updateElement(selectedElementData.id, { y: Number(e.target.value) })}
-                        className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-2 gap-2">
+                  <div className="grid grid-cols-2 gap-3">
                     <div>
-                      <label className="block text-sm mb-2 text-gray-700">Ширина: {Math.round(selectedElementData.width)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Ширина</label>
                       <input
                         type="number"
                         value={tempSize.width}
                         onChange={(e) => setTempSize({ ...tempSize, width: e.target.value })}
                         onBlur={applyTempSize}
                         onKeyDown={applyTempSize}
-                        className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
-                      <label className="block text-sm mb-2 text-gray-700">Высота: {Math.round(selectedElementData.height)}</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Высота</label>
                       <input
                         type="number"
                         value={tempSize.height}
                         onChange={(e) => setTempSize({ ...tempSize, height: e.target.value })}
                         onBlur={applyTempSize}
                         onKeyDown={applyTempSize}
-                        className="w-full bg-white border border-gray-300 rounded px-3 py-2 text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -1724,10 +1724,10 @@ useEffect(() => {
                   <div className="border-t border-gray-200 my-4"></div>
 
                   {/* Общие настройки для всех типов */}
-                  <div className="text-sm font-semibold mb-2 text-gray-900">Общие настройки</div>
+                  <div className="text-base font-semibold mb-3 text-gray-900">Общие настройки</div>
 
                   <div>
-                    <label className="block text-sm mb-2 text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Скругление углов: {selectedElementData.borderRadius}px
                     </label>
                     <input
@@ -1741,7 +1741,7 @@ useEffect(() => {
                   </div>
 
                   <div>
-                    <label className="block text-sm mb-2 text-gray-700">
+                    <label className="block text-sm font-medium text-gray-700 mb-2">
                       Прозрачность: {Math.round(selectedElementData.opacity * 100)}%
                     </label>
                     <input
