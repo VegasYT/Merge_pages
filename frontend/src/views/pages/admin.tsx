@@ -229,16 +229,26 @@ export const AdminPage = () => {
 
 	const handleSave = async () => {
 		try {
+			if (!templateName.trim()) {
+				toast.error('Please enter a template name');
+				return;
+			}
+
 			const templateData = {
-				name: templateName,
 				category_id: categoryId,
-				html_structure: JSON.stringify(structure),
-				javascript: javascript,
+				template_name: templateName,
+				name: templateName,
+				settings: {
+					structure: structure,
+					editableStyles: editableStyles,
+					editableElements: Object.keys(defaultData),
+					...(javascript && { javascript: javascript })
+				},
 				default_data: defaultData,
-				editable_styles: editableStyles,
+				preview_url: 'https://via.placeholder.com/300x200'
 			};
 
-			const response = await fetch('http://localhost:3000/api/block-templates', {
+			const response = await fetch('/api/block-templates', {
 				method: 'POST',
 				headers: {
 					'Content-Type': 'application/json',
@@ -247,10 +257,14 @@ export const AdminPage = () => {
 			});
 
 			if (!response.ok) {
-				throw new Error('Failed to save template');
+				const errorData = await response.json().catch(() => null);
+				throw new Error(errorData?.message || 'Failed to save template');
 			}
 
+			const result = await response.json();
 			toast.success('Template saved successfully!');
+			console.log('Saved template:', result);
+
 			// Очистка формы
 			setTemplateName('');
 			setStructure([]);
@@ -259,7 +273,7 @@ export const AdminPage = () => {
 			setJavascript('');
 		} catch (error) {
 			console.error('Error saving template:', error);
-			toast.error('Failed to save template');
+			toast.error(error instanceof Error ? error.message : 'Failed to save template');
 		}
 	};
 
