@@ -251,14 +251,10 @@ const ProjectPagesPage = () => {
 	};
 
 	const toggleAllPages = () => {
-		// Получаем только неопубликованные страницы
-		const draftPages = pages.filter(p => p.status === 'draft');
-		const draftPageIds = draftPages.map(p => p.id);
-
-		if (selectedPageIds.length === draftPageIds.length) {
+		if (selectedPageIds.length === pages.length) {
 			setSelectedPageIds([]);
 		} else {
-			setSelectedPageIds(draftPageIds);
+			setSelectedPageIds(pages.map(p => p.id));
 		}
 	};
 
@@ -464,7 +460,8 @@ const ProjectPagesPage = () => {
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
-											window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
+											const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+											window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 										}}
 										className="flex-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
 									>
@@ -537,7 +534,8 @@ const ProjectPagesPage = () => {
 										<button
 											onClick={(e) => {
 												e.stopPropagation();
-												window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
+												const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+												window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 											}}
 											className="p-1.5 md:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors hidden sm:block"
 											title="Open"
@@ -637,7 +635,8 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									navigator.clipboard.writeText(`https://${project.subdomain}.landy.website${page.slug}`);
+									const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+									navigator.clipboard.writeText(`https://${project.subdomain}.landy.website${slug}`);
 									toast.success('Link copied to clipboard!');
 								}
 								setSelectedPage(null);
@@ -652,7 +651,8 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
+									const slug = page.slug.startsWith('/') ? page.slug : '/' + page.slug;
+									window.open(`https://${project.subdomain}.landy.website${slug}`, '_blank');
 								}
 								setSelectedPage(null);
 								setContextMenuPosition(null);
@@ -973,50 +973,42 @@ const ProjectPagesPage = () => {
 								<label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
 									<input
 										type="checkbox"
-										checked={selectedPageIds.length === pages.filter(p => p.status === 'draft').length && pages.filter(p => p.status === 'draft').length > 0}
+										checked={selectedPageIds.length === pages.length}
 										onChange={toggleAllPages}
 										className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
 									/>
 									<span className="font-medium text-gray-900">
-										Выбрать все черновики ({pages.filter(p => p.status === 'draft').length})
+										Выбрать все ({pages.length})
 									</span>
 								</label>
 							</div>
 
 							{/* Page List */}
 							<div className="space-y-2">
-								{pages.map((page) => {
-									const isPublished = page.status === 'published';
-									return (
-										<label
-											key={page.id}
-											className={`flex items-center gap-3 p-4 rounded-lg border transition-colors ${
-												isPublished
-													? 'border-gray-200 bg-gray-50 cursor-not-allowed opacity-60'
-													: 'border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer'
-											}`}
-										>
-											<input
-												type="checkbox"
-												checked={selectedPageIds.includes(page.id)}
-												onChange={() => !isPublished && togglePageSelection(page.id)}
-												disabled={isPublished}
-												className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded disabled:opacity-50 disabled:cursor-not-allowed"
-											/>
-											<div className="flex-1">
-												<div className="font-medium text-gray-900">{page.name}</div>
-												<div className="text-sm text-gray-500">{page.slug}</div>
-											</div>
-											<div className={`px-2 py-1 rounded text-xs font-medium ${
-												page.status === 'published'
-													? 'bg-green-100 text-green-700'
-													: 'bg-yellow-100 text-yellow-700'
-											}`}>
-												{page.status === 'published' ? 'Опубликована' : 'Черновик'}
-											</div>
-										</label>
-									);
-								})}
+								{pages.map((page) => (
+									<label
+										key={page.id}
+										className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors"
+									>
+										<input
+											type="checkbox"
+											checked={selectedPageIds.includes(page.id)}
+											onChange={() => togglePageSelection(page.id)}
+											className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
+										/>
+										<div className="flex-1">
+											<div className="font-medium text-gray-900">{page.name}</div>
+											<div className="text-sm text-gray-500">{page.slug}</div>
+										</div>
+										<div className={`px-2 py-1 rounded text-xs font-medium ${
+											page.status === 'published'
+												? 'bg-green-100 text-green-700'
+												: 'bg-yellow-100 text-yellow-700'
+										}`}>
+											{page.status === 'published' ? 'Опубликована' : 'Черновик'}
+										</div>
+									</label>
+								))}
 							</div>
 
 							{pages.length === 0 && (
