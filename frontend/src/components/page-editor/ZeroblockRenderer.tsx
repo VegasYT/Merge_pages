@@ -194,6 +194,23 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 					</button>
 				);
 
+			case 'video':
+				return (
+					<video
+						key={mergedLayer.id}
+						src={props.src}
+						autoPlay={props.autoPlay === 'Нет' ? false : props.autoPlay === 'Да' ? true : false}
+						controls={props.controls === 'Скрыть' ? false : props.controls === 'Показать' ? true : false}
+						poster={props.preview_status === 'Да' && props.preview ? props.preview : ''}
+						loop={props.loop === 'Нет' ? false : props.loop === 'Да' ? true : false}
+						muted={props.muted === 'Нет' ? false : props.muted === 'Да' ? true : false}
+						style={{
+							...baseStyles,
+							objectFit: props.objectFit || 'cover',
+						}}
+					/>
+				);
+
 			default:
 				return (
 					<div
