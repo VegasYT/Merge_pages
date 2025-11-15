@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
-import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft } from 'lucide-react';
+import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft, Upload } from 'lucide-react';
 import { createPage, updatePage, deletePage } from '@/lib/services/pages';
+import { publishPages } from '@/lib/services/projects';
 import type { Page } from '@/lib/services/pages';
 import { toast } from 'sonner';
 
@@ -35,6 +36,9 @@ const ProjectPagesPage = () => {
 	const [isEditPageModalOpen, setIsEditPageModalOpen] = useState(false);
 	const [editingPage, setEditingPage] = useState<Page | null>(null);
 	const [isUpdating, setIsUpdating] = useState(false);
+	const [isPublishModalOpen, setIsPublishModalOpen] = useState(false);
+	const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
+	const [isPublishing, setIsPublishing] = useState(false);
 
 	const filteredPages = pages.filter(page => {
 		const matchesSearch =
@@ -173,6 +177,42 @@ const ProjectPagesPage = () => {
 		}
 	};
 
+	const handlePublishPages = async () => {
+		if (selectedPageIds.length === 0) {
+			toast.error('Выберите хотя бы одну страницу для публикации');
+			return;
+		}
+
+		setIsPublishing(true);
+		try {
+			await publishPages(project.id, { page_ids: selectedPageIds });
+			toast.success(`${selectedPageIds.length} ${selectedPageIds.length === 1 ? 'страница опубликована' : 'страницы опубликованы'} успешно!`);
+			setIsPublishModalOpen(false);
+			setSelectedPageIds([]);
+		} catch (error: any) {
+			console.error('Error publishing pages:', error);
+			toast.error(error.response?.data?.message || 'Не удалось опубликовать страницы');
+		} finally {
+			setIsPublishing(false);
+		}
+	};
+
+	const togglePageSelection = (pageId: number) => {
+		setSelectedPageIds(prev =>
+			prev.includes(pageId)
+				? prev.filter(id => id !== pageId)
+				: [...prev, pageId]
+		);
+	};
+
+	const toggleAllPages = () => {
+		if (selectedPageIds.length === pages.length) {
+			setSelectedPageIds([]);
+		} else {
+			setSelectedPageIds(pages.map(p => p.id));
+		}
+	};
+
 	return (
 		<div className="standard-tailwind-styles min-h-screen bg-gray-50">
 			{/* Header */}
@@ -193,14 +233,24 @@ const ProjectPagesPage = () => {
 							</div>
 						</div>
 
-						<button
-							onClick={() => setIsAddPageModalOpen(true)}
-							className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
-						>
-							<Plus size={18} className="md:w-5 md:h-5" />
-							<span className="hidden sm:inline">New Page</span>
-							<span className="sm:hidden">New</span>
-						</button>
+						<div className="flex gap-2">
+							<button
+								onClick={() => setIsPublishModalOpen(true)}
+								className="px-3 py-2 md:px-4 md:py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-green-500/30 text-sm md:text-base"
+							>
+								<Upload size={18} className="md:w-5 md:h-5" />
+								<span className="hidden sm:inline">Опубликовать страницы</span>
+								<span className="sm:hidden">Опубликовать</span>
+							</button>
+							<button
+								onClick={() => setIsAddPageModalOpen(true)}
+								className="px-3 py-2 md:px-4 md:py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-all duration-200 flex items-center gap-1.5 md:gap-2 shadow-lg shadow-blue-500/30 text-sm md:text-base"
+							>
+								<Plus size={18} className="md:w-5 md:h-5" />
+								<span className="hidden sm:inline">New Page</span>
+								<span className="sm:hidden">New</span>
+							</button>
+						</div>
 					</div>
 
 					{/* Search and Filters */}
@@ -844,6 +894,100 @@ const ProjectPagesPage = () => {
 					<div className="bg-white rounded-xl shadow-2xl p-6 flex flex-col items-center gap-4">
 						<Loader2 size={48} className="animate-spin text-blue-600" />
 						<p className="text-gray-700 font-medium">Updating your page...</p>
+					</div>
+				</div>
+			)}
+
+			{/* Publish Pages Modal */}
+			{isPublishModalOpen && (
+				<div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
+					<div className="bg-white rounded-xl shadow-2xl w-full max-w-2xl max-h-[80vh] overflow-hidden">
+						<div className="px-6 py-4 border-b border-gray-200">
+							<h2 className="text-xl font-bold text-gray-900">Опубликовать страницы</h2>
+							<p className="text-sm text-gray-600 mt-1">Выберите страницы для публикации</p>
+						</div>
+
+						<div className="p-6 overflow-y-auto max-h-[calc(80vh-180px)]">
+							{/* Select All */}
+							<div className="mb-4">
+								<label className="flex items-center gap-3 p-3 rounded-lg bg-gray-50 hover:bg-gray-100 cursor-pointer transition-colors">
+									<input
+										type="checkbox"
+										checked={selectedPageIds.length === pages.length}
+										onChange={toggleAllPages}
+										className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
+									/>
+									<span className="font-medium text-gray-900">
+										Выбрать все ({pages.length})
+									</span>
+								</label>
+							</div>
+
+							{/* Page List */}
+							<div className="space-y-2">
+								{pages.map((page) => (
+									<label
+										key={page.id}
+										className="flex items-center gap-3 p-4 rounded-lg border border-gray-200 hover:border-green-500 hover:bg-green-50 cursor-pointer transition-colors"
+									>
+										<input
+											type="checkbox"
+											checked={selectedPageIds.includes(page.id)}
+											onChange={() => togglePageSelection(page.id)}
+											className="w-5 h-5 text-green-600 focus:ring-2 focus:ring-green-500 rounded"
+										/>
+										<div className="flex-1">
+											<div className="font-medium text-gray-900">{page.name}</div>
+											<div className="text-sm text-gray-500">/{page.slug}</div>
+										</div>
+										<div className={`px-2 py-1 rounded text-xs font-medium ${
+											page.status === 'published'
+												? 'bg-green-100 text-green-700'
+												: 'bg-yellow-100 text-yellow-700'
+										}`}>
+											{page.status}
+										</div>
+									</label>
+								))}
+							</div>
+
+							{pages.length === 0 && (
+								<div className="text-center py-8 text-gray-500">
+									Нет доступных страниц для публикации
+								</div>
+							)}
+						</div>
+
+						{/* Buttons */}
+						<div className="px-6 py-4 border-t border-gray-200 flex items-center gap-3">
+							<button
+								onClick={() => {
+									setIsPublishModalOpen(false);
+									setSelectedPageIds([]);
+								}}
+								disabled={isPublishing}
+								className="flex-1 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed"
+							>
+								Отмена
+							</button>
+							<button
+								onClick={handlePublishPages}
+								disabled={selectedPageIds.length === 0 || isPublishing}
+								className="flex-1 px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors font-medium disabled:bg-gray-300 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+							>
+								{isPublishing ? (
+									<>
+										<Loader2 size={18} className="animate-spin" />
+										Публикация...
+									</>
+								) : (
+									<>
+										<Upload size={18} />
+										Опубликовать ({selectedPageIds.length})
+									</>
+								)}
+							</button>
+						</div>
 					</div>
 				</div>
 			)}

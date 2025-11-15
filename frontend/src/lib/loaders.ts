@@ -89,10 +89,11 @@ export async function pageEditorLoader({ params }: LoaderFunctionArgs) {
 
 		console.log('📦 Page editor loader: Loading page', pageId, 'and blocks...');
 
-		// Загружаем проект, страницу, блоки, шаблоны и категории параллельно
-		const [projectResponse, pageResponse, blocks, blockTemplates, categories] = await Promise.all([
+		// Загружаем проект, страницу, все страницы проекта, блоки, шаблоны и категории параллельно
+		const [projectResponse, pageResponse, pagesResponse, blocks, blockTemplates, categories] = await Promise.all([
 			apiClient.get<Project>(`/projects/${projectId}`),
 			apiClient.get<Page>(`/pages/${pageId}`),
+			apiClient.get<Page[]>(`/projects/${projectId}/pages`),
 			getBlocks(Number(pageId)),
 			getBlockTemplates(),
 			getBlockTemplateCategories(),
@@ -158,6 +159,7 @@ export async function pageEditorLoader({ params }: LoaderFunctionArgs) {
 		return {
 			project: projectResponse.data,
 			page: pageResponse.data,
+			pages: pagesResponse.data,
 			blocks,
 			blockTemplates,
 			categories,
