@@ -39,10 +39,11 @@ interface LoaderData {
 	blocks: Block[];
 	blockTemplates: BlockTemplate[];
 	categories: BlockTemplateCategory[];
+	zeroblockDataMap: Map<number, any>;
 }
 
 const PageEditorPage = () => {
-	const { project, page, blocks: initialBlocks, blockTemplates, categories } = useLoaderData() as LoaderData;
+	const { project, page, blocks: initialBlocks, blockTemplates, categories, zeroblockDataMap } = useLoaderData() as LoaderData;
 	const [blocks, setBlocks] = useState<Block[]>(initialBlocks);
 	const [selectedBlock, setSelectedBlock] = useState<Block | null>(null);
 	const [isSettingsModalOpen, setIsSettingsModalOpen] = useState(false);
@@ -267,6 +268,7 @@ const PageEditorPage = () => {
 									isFirst={block.position === 0}
 									isLast={block.position === blocks.length - 1}
 									viewportSize={viewportSize}
+									zeroblockData={zeroblockDataMap.get(block.id)}
 								/>
 							))
 						)}

@@ -100,12 +100,68 @@ export async function pageEditorLoader({ params }: LoaderFunctionArgs) {
 
 		console.log('✅ Page editor loader: Successfully loaded page and', blocks.length, 'blocks');
 
+		// Загружаем zeroblock данные для всех zeroblock типов
+		const zeroblockBlocks = blocks.filter(block => block.type === 'zeroblock');
+		let zeroBaseElements = [];
+		const zeroblockDataMap = new Map();
+
+		if (zeroblockBlocks.length > 0) {
+			console.log('📦 Loading zeroblock data for', zeroblockBlocks.length, 'zero blocks...');
+
+			// Загружаем base elements один раз
+			zeroBaseElements = await getZeroBaseElements();
+
+			// Загружаем данные для каждого zeroblock
+			for (const block of zeroblockBlocks) {
+				try {
+					const zeroBlock = await getZeroBlockByBlockId(block.id);
+
+					if (zeroBlock) {
+						// Загружаем layers и block responsive
+						const [zeroLayers, zeroBlockResponsive] = await Promise.all([
+							getZeroLayers(zeroBlock.id),
+							getZeroBlockResponsiveSettings(zeroBlock.id),
+						]);
+
+						// Загружаем layer responsive для каждого слоя
+						let zeroLayerResponsive = [];
+						if (zeroLayers.length > 0) {
+							const layerResponsivePromises = zeroLayers.map((layer) =>
+								getZeroLayerResponsiveSettings(layer.id)
+							);
+							const layerResponsiveArrays = await Promise.all(layerResponsivePromises);
+							zeroLayerResponsive = layerResponsiveArrays.flat();
+						}
+
+						// Сохраняем данные в map
+						zeroblockDataMap.set(block.id, {
+							zeroBlock,
+							zeroBaseElements,
+							zeroLayers,
+							zeroBlockResponsive,
+							zeroLayerResponsive,
+						});
+
+						console.log(`  ✅ Loaded zeroblock ${block.id}: ${zeroLayers.length} layers, ${zeroBlockResponsive.length} breakpoints`);
+					}
+				} catch (error: any) {
+					// Если zeroblock не найден (404), просто пропускаем
+					if (error.response?.status === 404) {
+						console.log(`  ⚠️ ZeroBlock not found for block ${block.id}`);
+					} else {
+						console.error(`  ❌ Failed to load zeroblock ${block.id}:`, error);
+					}
+				}
+			}
+		}
+
 		return {
 			project: projectResponse.data,
 			page: pageResponse.data,
 			blocks,
 			blockTemplates,
 			categories,
+			zeroblockDataMap,
 		};
 	} catch (error: any) {
 		console.error('❌ Page editor loader failed:', error);

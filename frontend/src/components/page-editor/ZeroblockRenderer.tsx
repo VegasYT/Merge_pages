@@ -116,6 +116,8 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 			width: `${width}px`,
 			height: `${height}px`,
 			boxSizing: 'border-box',
+			borderRadius: props.borderRadius ? `${props.borderRadius}px` : undefined,
+			opacity: props.opacity !== undefined ? props.opacity : 1,
 		};
 
 		// Рендер в зависимости от типа элемента
