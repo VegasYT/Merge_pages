@@ -245,18 +245,32 @@ export default function ZeroblockRenderer({ zeroblockData, viewportSize = 'deskt
 			.filter((layer): layer is MergedLayerData => layer !== null)
 			.sort((a, b) => a.position - b.position) || [];
 
+	// Определяем выравнивание на основе alignment из props
+	const alignment = activeResponsive.props?.alignment || 'left';
+	const justifyContent = alignment === 'center' ? 'center' : alignment === 'right' ? 'flex-end' : 'flex-start';
+
 	return (
 		<div
-			ref={containerRef}
 			style={{
-				position: 'relative',
 				width: '100%',
-				height: `${activeResponsive.height}px`,
-				overflow: 'hidden',
+				display: 'flex',
+				justifyContent: justifyContent,
 			}}
 		>
-			{/* Рендер всех элементов */}
-			{layersData.map((layer) => renderElement(layer))}
+			<div
+				ref={containerRef}
+				style={{
+					position: 'relative',
+					width: `${activeResponsive.width}px`,
+					maxWidth: '100%',
+					height: `${activeResponsive.height}px`,
+					overflow: 'hidden',
+					backgroundColor: activeResponsive.props?.backgroundColor || '#ffffff',
+				}}
+			>
+				{/* Рендер всех элементов */}
+				{layersData.map((layer) => renderElement(layer))}
+			</div>
 		</div>
 	);
 }

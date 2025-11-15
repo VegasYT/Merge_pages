@@ -1586,6 +1586,18 @@ useEffect(() => {
                   className="w-full h-10 rounded"
                 />
               </div>
+              <div>
+                <label className="block text-sm mb-2">Выравнивание блока</label>
+                <select
+                  value={activeBreakpoint.alignment || 'left'}
+                  onChange={(e) => updateBreakpoint(activeBreakpointId, { alignment: e.target.value })}
+                  className="w-full bg-gray-700 rounded px-3 py-2 text-white"
+                >
+                  <option value="left">Слева</option>
+                  <option value="center">По центру</option>
+                  <option value="right">Справа</option>
+                </select>
+              </div>
             </div>
           </div>
 

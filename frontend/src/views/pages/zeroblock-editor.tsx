@@ -187,7 +187,7 @@ export const ZeroBlockEditorPage = () => {
 					const updated = await updateZeroBlockResponsive(existing.id, {
 						width: Math.round(bp.width),
 						height: Math.round(bp.height),
-						props: { name: bp.name, ...bp.props },
+						props: { name: bp.name, backgroundColor: bp.backgroundColor, alignment: bp.alignment, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, existing.id);
 					currentBreakpointIds.add(existing.id);
@@ -200,7 +200,7 @@ export const ZeroBlockEditorPage = () => {
 						zero_block_id: zeroBlock.id,
 						width: Math.round(bp.width),
 						height: Math.round(bp.height),
-						props: { name: bp.name, ...bp.props },
+						props: { name: bp.name, backgroundColor: bp.backgroundColor, alignment: bp.alignment, ...bp.props },
 					});
 					breakpointIdMap.set(stringId, created.id);
 					currentBreakpointIds.add(created.id);

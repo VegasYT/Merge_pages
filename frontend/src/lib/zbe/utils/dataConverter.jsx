@@ -31,6 +31,7 @@ export const convertResponsiveToBreakpoints = (zeroBlockResponsive) => {
     width: Math.round(resp.width),
     height: Math.round(resp.height || 1080),
     backgroundColor: resp.props?.backgroundColor || '#ffffff',
+    alignment: resp.props?.alignment || 'left',
     isDefault: index === 0, // Первый (самый широкий) - default
     responsiveId: resp.id, // Сохраняем числовой ID для сохранения
   }));
