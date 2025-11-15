@@ -255,7 +255,13 @@ export default function App({ initialData, onGetData }) {
       y: 50 - canvasOffset.y / zoom
     };
 
-    const newElement = createElement(typeName, typeConfig, defaultProps, defaultSize, position, generatedName);
+    // Вычисляем максимальный zIndex и добавляем +1
+    const maxZIndex = elements.length > 0
+      ? Math.max(...elements.map(el => el.zIndex || 0))
+      : -1;
+    const newZIndex = maxZIndex + 1;
+
+    const newElement = createElement(typeName, typeConfig, defaultProps, defaultSize, position, generatedName, newZIndex);
 
     addElement(newElement);
     selectElement(newElement.id);
@@ -1237,7 +1243,7 @@ useEffect(() => {
             <h3 className="font-semibold text-lg">Слои</h3>
           </div>
           <div className="flex-1 overflow-auto p-2">
-            {[...elements].reverse().map((element) => (
+            {[...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0)).map((element) => (
               <div
                 key={element.id}
                 onClick={(e) => {
@@ -1381,7 +1387,7 @@ useEffect(() => {
                 selectionEnd={selectionEnd}
               />
 
-              {elements.map((baseElement) => {
+              {[...elements].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0)).map((baseElement) => {
                 // Применяем мердж с активным брейкпоинтом
                 const element = mergeElementWithBreakpoint(baseElement, activeBreakpointId);
                 return (

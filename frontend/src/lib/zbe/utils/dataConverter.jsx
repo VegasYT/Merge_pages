@@ -54,6 +54,9 @@ export const convertLayersToElements = (
     return [];
   }
 
+  // Сортируем layers по position (по возрастанию, чтобы меньший position = раньше в массиве)
+  const sortedLayers = [...zeroLayers].sort((a, b) => a.position - b.position);
+
   // Создаем Map для быстрого доступа к base elements
   const baseElementsMap = new Map(
     zeroBaseElements.map(be => [be.id, be])
@@ -71,7 +74,7 @@ export const convertLayersToElements = (
     breakpoints.map(bp => [bp.responsiveId, bp.id])
   );
 
-  return zeroLayers.map(layer => {
+  return sortedLayers.map((layer, index) => {
     const baseElement = baseElementsMap.get(layer.zero_base_element_id);
     if (!baseElement) {
       console.warn(`Base element ${layer.zero_base_element_id} not found for layer ${layer.id}`);
@@ -109,6 +112,7 @@ export const convertLayersToElements = (
       borderRadius: Math.round(propsRadius ?? 0),
       opacity: propsOpacity ?? 1,
       props: cleanProps,
+      zIndex: layer.position, // position из базы = zIndex в ZBE
       breakpointOverrides: {},
     };
 

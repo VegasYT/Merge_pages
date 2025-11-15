@@ -225,27 +225,27 @@ export const ZeroBlockEditorPage = () => {
 					continue;
 				}
 
-				// position = z-index элемента
-				const zIndex = element.zIndex || 0;
+				// position = zIndex элемента (берём напрямую из zIndex)
+				const position = element.zIndex ?? 0;
 
 				// Если element имеет layerId и существует в базе - обновляем
 				if (element.layerId && existingLayersMap.has(element.layerId)) {
 					await updateZeroLayer(element.layerId, {
 						zero_base_element_id: baseElement.id,
-						position: zIndex,
+						position,
 					});
 					currentLayerIds.add(element.layerId);
-					console.log(`  ✏️ Updated layer ${element.layerId} (${element.name})`);
+					console.log(`  ✏️ Updated layer ${element.layerId} (${element.name}), position: ${position}`);
 				}
 				// Если нет layerId - создаем новый
 				else if (!element.layerId) {
 					const createdLayer = await createZeroLayer(zeroBlock.id, {
 						zero_base_element_id: baseElement.id,
-						position: zIndex,
+						position,
 					});
 					element.layerId = createdLayer.id;
 					currentLayerIds.add(createdLayer.id);
-					console.log(`  ➕ Created layer ${createdLayer.id} (${element.name})`);
+					console.log(`  ➕ Created layer ${createdLayer.id} (${element.name}), position: ${position}`);
 				}
 			}
 

@@ -107,11 +107,18 @@ export const useElements = (activeBreakpointId = 'desktop', defaultBreakpointId 
   const duplicateElement = (id) => {
     const element = elements.find((el) => el.id === id);
     if (element) {
+      // Вычисляем максимальный zIndex и добавляем +1
+      const maxZIndex = elements.length > 0
+        ? Math.max(...elements.map(el => el.zIndex || 0))
+        : -1;
+      const newZIndex = maxZIndex + 1;
+
       const newElement = {
         ...element,
         id: Date.now(),
         x: element.x + 20,
-        y: element.y + 20
+        y: element.y + 20,
+        zIndex: newZIndex
       };
       setElements((prev) => [...prev, newElement]);
       return newElement.id;
