@@ -1,4 +1,4 @@
-import { createBrowserRouter } from 'react-router';
+import { createBrowserRouter, redirect } from 'react-router';
 
 import { RootLayout } from '@/views/layouts/root';
 import { AuthLayout } from '@/views/layouts/auth';
@@ -22,10 +22,7 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: '/',
-				Component: HomeLayout,
-				children: [
-					{ index: true, Component: HomePage },
-				],
+				loader: () => redirect('/projects'),
 			},
 			{
 				path: 'projects',
