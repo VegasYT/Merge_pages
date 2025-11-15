@@ -21,7 +21,6 @@ import {
 	deleteZeroBlockResponsive,
 	createZeroLayerResponsive,
 	updateZeroLayerResponsive,
-	deleteZeroLayerResponsive,
 } from '@/lib/services/zeroblocks';
 
 interface LoaderData {
@@ -276,7 +275,6 @@ export const ZeroBlockEditorPage = () => {
 			const existingLayerResponsiveMap = new Map(
 				savedZeroLayerResponsive.map((lr) => [`${lr.zero_layer_id}_${lr.zero_block_responsive_id}`, lr])
 			);
-			const currentLayerResponsiveIds = new Set<number>();
 			const updatedLayerResponsive: ZeroLayerResponsive[] = [];
 
 			// Обрабатываем каждый element для каждого breakpoint
@@ -335,7 +333,6 @@ export const ZeroBlockEditorPage = () => {
 					if (existing) {
 						// Обновляем существующую (PATCH)
 						const updated = await updateZeroLayerResponsive(existing.id, responsiveData);
-						currentLayerResponsiveIds.add(existing.id);
 						updatedLayerResponsive.push(updated);
 						console.log(`  ✏️ PATCH layer responsive ${existing.id} (layer ${element.layerId}, bp ${numericBpId})`);
 					} else {
@@ -345,20 +342,14 @@ export const ZeroBlockEditorPage = () => {
 							zero_block_id: zeroBlock.id,
 							...responsiveData,
 						});
-						currentLayerResponsiveIds.add(created.id);
 						updatedLayerResponsive.push(created);
 						console.log(`  ➕ POST layer responsive ${created.id} (layer ${element.layerId}, bp ${numericBpId}, zb ${zeroBlock.id})`);
 					}
 				}
 			}
 
-			// Удаляем responsive настройки которых больше нет
-			for (const existing of savedZeroLayerResponsive) {
-				if (!currentLayerResponsiveIds.has(existing.id)) {
-					await deleteZeroLayerResponsive(existing.id);
-					console.log(`  🗑️ Deleted layer responsive ${existing.id}`);
-				}
-			}
+			// Не удаляем layer responsive вручную - бэкенд делает каскадное удаление
+			// при удалении брейкпоинта или слоя
 
 			console.log('✅ All data saved successfully!');
 			toast.success('Изменения сохранены!');
