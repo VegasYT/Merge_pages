@@ -51,3 +51,12 @@ export const updatePage = async (pageId: number, data: UpdatePageDto): Promise<P
 export const deletePage = async (pageId: number): Promise<void> => {
 	await apiClient.delete(`/pages/${pageId}`);
 };
+
+export interface UpdatePageStatusDto {
+	status: 'published' | 'draft';
+}
+
+export const updatePageStatus = async (pageId: number, data: UpdatePageStatusDto): Promise<Page> => {
+	const response = await apiClient.patch<Page>(`/pages/${pageId}/status`, data);
+	return response.data;
+};

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useLoaderData, useNavigate } from 'react-router';
 import { Plus, Search, FileText, Calendar, Edit, Trash2, ExternalLink, ChevronRight, MoreVertical, Copy, Eye, EyeOff, Loader2, ArrowLeft, Upload } from 'lucide-react';
-import { createPage, updatePage, deletePage } from '@/lib/services/pages';
+import { createPage, updatePage, deletePage, updatePageStatus } from '@/lib/services/pages';
 import { publishPages } from '@/lib/services/projects';
 import type { Page } from '@/lib/services/pages';
 import { toast } from 'sonner';
@@ -170,21 +170,28 @@ const ProjectPagesPage = () => {
 	};
 
 	const togglePageStatus = async (page: Page) => {
-		const newStatus = page.status === 'published' ? 'draft' : 'published';
+		// Если страница уже черновик, показываем уведомление
+		if (page.status === 'draft') {
+			toast.info('Страница уже находится в статусе черновика');
+			setSelectedPage(null);
+			setContextMenuPosition(null);
+			return;
+		}
 
+		// Если страница опубликована, снимаем с публикации
 		try {
-			const updatedPage = await updatePage(page.id, {
-				status: newStatus,
+			const updatedPage = await updatePageStatus(page.id, {
+				status: 'draft',
 			});
 
 			setPages(pages.map(p => p.id === updatedPage.id ? updatedPage : p));
 			setSelectedPage(null);
 			setContextMenuPosition(null);
 
-			toast.success(`Page ${newStatus === 'published' ? 'published' : 'unpublished'} successfully!`);
+			toast.success('Страница снята с публикации');
 		} catch (error: any) {
 			console.error('Error updating page status:', error);
-			toast.error(error.response?.data?.message || 'Failed to update page status.');
+			toast.error(error.response?.data?.message || 'Не удалось снять страницу с публикации');
 		}
 	};
 
@@ -633,8 +640,8 @@ const ProjectPagesPage = () => {
 							}}
 							className="w-full px-4 py-2 text-left text-sm text-gray-700 hover:bg-gray-100 rounded-lg flex items-center gap-3"
 						>
-							<Eye size={16} />
-							Toggle Status
+							<EyeOff size={16} />
+							Скрыть страницу
 						</button>
 						<hr className="my-1" />
 						<button
