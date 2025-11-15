@@ -13,6 +13,7 @@ export interface BlockTemplate {
 		structure?: any[];
 		editableElements?: string[];
 		editableStyles?: Record<string, any>;
+		javascript?: string;
 	};
 	default_data: Record<string, any>;
 	created_at: string;
