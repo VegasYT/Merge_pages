@@ -1733,7 +1733,7 @@ useEffect(() => {
                     <input
                       type="range"
                       min="0"
-                      max="50"
+                      max="150"
                       value={selectedElementData.borderRadius}
                       onChange={(e) => updateElement(selectedElementData.id, { borderRadius: Number(e.target.value) })}
                       className="w-full"
