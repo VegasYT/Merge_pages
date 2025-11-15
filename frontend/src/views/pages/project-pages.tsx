@@ -429,7 +429,7 @@ const ProjectPagesPage = () => {
 									<button
 										onClick={(e) => {
 											e.stopPropagation();
-											window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+											window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
 										}}
 										className="flex-1 px-3 py-1.5 text-xs font-medium text-blue-700 bg-blue-50 border border-blue-200 rounded hover:bg-blue-100 transition-colors flex items-center justify-center gap-1"
 									>
@@ -502,7 +502,7 @@ const ProjectPagesPage = () => {
 										<button
 											onClick={(e) => {
 												e.stopPropagation();
-												window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+												window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
 											}}
 											className="p-1.5 md:p-2 text-blue-600 hover:text-blue-700 hover:bg-blue-50 rounded transition-colors hidden sm:block"
 											title="Open"
@@ -602,7 +602,7 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									navigator.clipboard.writeText(`https://${project.subdomain}.yourdomain.com${page.slug}`);
+									navigator.clipboard.writeText(`https://${project.subdomain}.landy.website${page.slug}`);
 									toast.success('Link copied to clipboard!');
 								}
 								setSelectedPage(null);
@@ -617,7 +617,7 @@ const ProjectPagesPage = () => {
 							onClick={() => {
 								const page = pages.find((p) => p.id === selectedPage);
 								if (page) {
-									window.open(`https://${project.subdomain}.yourdomain.com${page.slug}`, '_blank');
+									window.open(`https://${project.subdomain}.landy.website${page.slug}`, '_blank');
 								}
 								setSelectedPage(null);
 								setContextMenuPosition(null);
@@ -717,7 +717,7 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com/</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">landy.website/</span>
 									<input
 										type="text"
 										value={newPage.slug}
@@ -817,7 +817,7 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com/</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">landy.website/</span>
 									<input
 										type="text"
 										value={editingPage.slug}
