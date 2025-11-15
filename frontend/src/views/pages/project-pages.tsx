@@ -40,6 +40,20 @@ const ProjectPagesPage = () => {
 	const [selectedPageIds, setSelectedPageIds] = useState<number[]>([]);
 	const [isPublishing, setIsPublishing] = useState(false);
 
+	// Функция для нормализации slug
+	const normalizeSlug = (value: string): string => {
+		return value
+			.toLowerCase() // Переводим в нижний регистр
+			.replace(/\s+/g, '-') // Заменяем пробелы на дефисы
+			.replace(/[^a-z0-9\-\/]/g, '') // Оставляем только буквы, цифры, дефисы и слеши
+			.replace(/\/+/g, '/') // Заменяем несколько слешей подряд на один
+			.replace(/\-+/g, '-') // Заменяем несколько дефисов подряд на один
+			.replace(/^\/+/, '') // Убираем слеши в начале
+			.replace(/\/+$/, '') // Убираем слеши в конце
+			.replace(/^\-+/, '') // Убираем дефисы в начале
+			.replace(/\-+$/, ''); // Убираем дефисы в конце
+	};
+
 	const filteredPages = pages.filter(page => {
 		const matchesSearch =
 			page.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
@@ -87,7 +101,7 @@ const ProjectPagesPage = () => {
 			const createdPage = await createPage(project.id, {
 				name: newPage.name,
 				title: newPage.title,
-				slug: newPage.slug,
+				slug: '/' + newPage.slug, // Добавляем "/" при отправке
 				status: 'draft',
 			});
 
@@ -115,7 +129,7 @@ const ProjectPagesPage = () => {
 			const updatedPage = await updatePage(editingPage.id, {
 				name: editingPage.name,
 				title: editingPage.title,
-				slug: editingPage.slug,
+				slug: editingPage.slug.startsWith('/') ? editingPage.slug : '/' + editingPage.slug, // Добавляем "/" если его нет
 				icon: editingPage.icon,
 				status: editingPage.status,
 			});
@@ -152,7 +166,9 @@ const ProjectPagesPage = () => {
 	};
 
 	const openEditModal = (page: Page) => {
-		setEditingPage({ ...page });
+		// Убираем "/" из slug для редактирования
+		const slugWithoutSlash = page.slug.startsWith('/') ? page.slug.substring(1) : page.slug;
+		setEditingPage({ ...page, slug: slugWithoutSlash });
 		setIsEditPageModalOpen(true);
 		setSelectedPage(null);
 		setContextMenuPosition(null);
@@ -703,23 +719,20 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com/</span>
 									<input
 										type="text"
 										value={newPage.slug}
 										onChange={(e) => {
-											let value = e.target.value;
-											if (value && !value.startsWith('/')) {
-												value = '/' + value;
-											}
-											setNewPage({ ...newPage, slug: value });
+											const normalized = normalizeSlug(e.target.value);
+											setNewPage({ ...newPage, slug: normalized });
 										}}
-										placeholder="/about"
+										placeholder="about"
 										disabled={isCreating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
 								</div>
-								<p className="text-xs text-gray-500 mt-1">Must start with / (e.g., /about, /contact)</p>
+								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
 							</div>
 						</div>
 
@@ -806,23 +819,20 @@ const ProjectPagesPage = () => {
 							<div>
 								<label className="block text-sm font-medium text-gray-700 mb-2">URL Slug</label>
 								<div className="flex items-center gap-2">
-									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com</span>
+									<span className="text-gray-600 font-medium whitespace-nowrap">yourdomain.com/</span>
 									<input
 										type="text"
 										value={editingPage.slug}
 										onChange={(e) => {
-											let value = e.target.value;
-											if (value && !value.startsWith('/')) {
-												value = '/' + value;
-											}
-											setEditingPage({ ...editingPage, slug: value });
+											const normalized = normalizeSlug(e.target.value);
+											setEditingPage({ ...editingPage, slug: normalized });
 										}}
-										placeholder="/about"
+										placeholder="about"
 										disabled={isUpdating}
 										className="flex-1 px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-100 disabled:cursor-not-allowed"
 									/>
 								</div>
-								<p className="text-xs text-gray-500 mt-1">Must start with / (e.g., /about, /contact)</p>
+								<p className="text-xs text-gray-500 mt-1">Only letters, numbers, dashes, and slashes (e.g., about, contact)</p>
 							</div>
 
 							{/* Status */}
