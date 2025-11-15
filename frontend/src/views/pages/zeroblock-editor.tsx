@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useParams, useNavigate, useLoaderData } from 'react-router';
-import { ArrowLeft, Save, Loader2 } from 'lucide-react';
+import { ArrowLeft, Save, Loader2, LogOut } from 'lucide-react';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 import { toast } from 'sonner';
 import { ZBEWrapper } from '@/components/zbe/ZBEWrapper';
 import type { Block } from '@/lib/services/blocks';
@@ -83,6 +85,7 @@ export const ZeroBlockEditorPage = () => {
 		pageId,
 	} = useLoaderData() as LoaderData;
 	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 	const [isSaving, setIsSaving] = useState(false);
 	const [zbeLoaded, setZbeLoaded] = useState(false);
@@ -129,6 +132,19 @@ export const ZeroBlockEditorPage = () => {
 	const handleConfirmExit = () => {
 		setShowUnsavedModal(false);
 		navigate(`/projects/${projectId}/pages/${pageId}/editor`);
+	};
+
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
 	};
 
 	// Ref для хранения данных из ZBE
@@ -435,6 +451,13 @@ export const ZeroBlockEditorPage = () => {
 				</div>
 				<div className="flex items-center gap-3">
 					{hasUnsavedChanges() && <span className="text-sm text-yellow-600 font-medium">Есть несохраненные изменения</span>}
+					<button
+						onClick={handleLogout}
+						className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+						title="Logout"
+					>
+						<LogOut size={20} />
+					</button>
 					<button
 						onClick={handleSave}
 						disabled={isSaving}

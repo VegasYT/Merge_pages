@@ -1,5 +1,8 @@
 import { useState } from 'react';
-import { Code, Save, Settings, FileJson, Eye, Copy } from 'lucide-react';
+import { useNavigate } from 'react-router';
+import { Code, Save, Settings, FileJson, Eye, Copy, LogOut } from 'lucide-react';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 import { toast } from 'sonner';
 import {
   DndContext,
@@ -26,6 +29,8 @@ import { getElementByPath, getDefaultClasses } from '@/lib/template-editor/utils
 import { createBlockTemplate } from '@/lib/services/block-templates';
 
 export const AdminPage = () => {
+	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [templateName, setTemplateName] = useState('');
 	const [categoryId, setCategoryId] = useState(1);
 	const [structure, setStructure] = useState<any[]>([]);
@@ -320,6 +325,19 @@ export const AdminPage = () => {
 		toast.success('JSON copied to clipboard!');
 	};
 
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
+	};
+
 	return (
 		<DndContext
 			sensors={sensors}
@@ -392,6 +410,17 @@ export const AdminPage = () => {
 						>
 							<Save size={18} />
 							Save Template
+						</button>
+
+						<div className="h-8 w-px bg-gray-300"></div>
+
+						<button
+							onClick={handleLogout}
+							className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition font-medium"
+							title="Logout"
+						>
+							<LogOut size={18} />
+							Logout
 						</button>
 					</div>
 				</div>

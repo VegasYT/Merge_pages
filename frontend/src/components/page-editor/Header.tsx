@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
-import { Plus, Smartphone, Tablet, Monitor, ArrowLeft, ChevronDown, Upload } from 'lucide-react';
+import { Plus, Smartphone, Tablet, Monitor, ArrowLeft, ChevronDown, Upload, LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router';
+import { logoutHelper } from '@/lib/services/auth';
+import { useAuthStore } from '@/stores';
 
 interface Page {
 	id: number;
@@ -30,6 +32,7 @@ export default function Header({
 	onPublish
 }: HeaderProps) {
 	const navigate = useNavigate();
+	const clearTokens = useAuthStore((s) => s.clearTokens);
 	const [isPageSelectorOpen, setIsPageSelectorOpen] = useState(false);
 
 	const handleBackToPages = () => {
@@ -39,6 +42,19 @@ export default function Header({
 	const handlePageSelect = (pageId: number) => {
 		navigate(`/projects/${projectId}/pages/${pageId}/editor`);
 		setIsPageSelectorOpen(false);
+	};
+
+	const handleLogout = async () => {
+		try {
+			await logoutHelper();
+			clearTokens();
+			navigate('/auth/login');
+		} catch (error: any) {
+			console.error('Error logging out:', error);
+			// Clear tokens anyway and redirect
+			clearTokens();
+			navigate('/auth/login');
+		}
 	};
 
 	return (
@@ -124,6 +140,13 @@ export default function Header({
 
 					{/* Правая часть: действия */}
 					<div className="flex gap-2">
+						<button
+							onClick={handleLogout}
+							className="flex items-center gap-2 px-4 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition"
+							title="Logout"
+						>
+							<LogOut size={20} />
+						</button>
 						<button
 							onClick={onPublish}
 							className="flex items-center gap-2 bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition"
