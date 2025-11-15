@@ -220,9 +220,29 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
 						{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}
 					</svg>
 				);
+			case 'form':
+				return (
+					<form
+						key={index}
+						{...props}
+						onSubmit={(e) => {
+							if (element.preventDefault !== false) {
+								e.preventDefault();
+							}
+						}}
+						action={element.action || data[element.actionKey] || undefined}
+						method={element.method || 'POST'}
+					>
+						{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}
+					</form>
+				);
 			case 'button':
 				return (
-					<button key={index} {...props}>
+					<button
+						key={index}
+						{...props}
+						type={element.buttonType || 'button'}
+					>
 						{formatTextWithLineBreaks(textContent)}
 						{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}
 					</button>
@@ -250,7 +270,11 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
 				return <hr key={index} {...props} />;
 			case 'label':
 				return (
-					<label key={index} {...props}>
+					<label
+						key={index}
+						{...props}
+						htmlFor={element.htmlFor || element.for || ''}
+					>
 						{formatTextWithLineBreaks(textContent)}
 						{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}
 					</label>
@@ -260,9 +284,20 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
 					<input
 						key={index}
 						{...props}
-						type={element.inputType || 'text'}
+						type={element.inputType || element.type || 'text'}
+						name={element.name || ''}
+						id={element.id || ''}
 						placeholder={element.placeholder || data[element.placeholderKey] || ''}
 						defaultValue={element.value || data[element.valueKey] || ''}
+						required={element.required || false}
+						disabled={element.disabled || false}
+						readOnly={element.readOnly || false}
+						min={element.min}
+						max={element.max}
+						step={element.step}
+						pattern={element.pattern}
+						maxLength={element.maxLength}
+						minLength={element.minLength}
 					/>
 				);
 			case 'textarea':
@@ -270,15 +305,43 @@ export default function UniversalBlockRenderer({ structure, data, styles, viewpo
 					<textarea
 						key={index}
 						{...props}
+						name={element.name || ''}
+						id={element.id || ''}
 						placeholder={element.placeholder || data[element.placeholderKey] || ''}
 						defaultValue={element.value || data[element.valueKey] || ''}
+						required={element.required || false}
+						disabled={element.disabled || false}
+						readOnly={element.readOnly || false}
+						rows={element.rows || 4}
+						cols={element.cols}
+						maxLength={element.maxLength}
+						minLength={element.minLength}
 					/>
 				);
 			case 'select':
-				return <select key={index} {...props}>{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}</select>;
+				return (
+					<select
+						key={index}
+						{...props}
+						name={element.name || ''}
+						id={element.id || ''}
+						required={element.required || false}
+						disabled={element.disabled || false}
+						multiple={element.multiple || false}
+						defaultValue={element.value || data[element.valueKey] || ''}
+					>
+						{children && children.map((child: any, i: number) => renderElement(child, i, repeatData, false))}
+					</select>
+				);
 			case 'option':
 				return (
-					<option key={index} {...props} value={element.value || textContent}>
+					<option
+						key={index}
+						{...props}
+						value={element.value || textContent}
+						selected={element.selected || false}
+						disabled={element.disabled || false}
+					>
 						{formatTextWithLineBreaks(textContent)}
 					</option>
 				);

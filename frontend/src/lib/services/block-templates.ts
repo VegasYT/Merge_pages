@@ -48,3 +48,20 @@ export const getBlockTemplatesByCategory = async (categoryId: number): Promise<B
 	const response = await apiClient.get<BlockTemplate[]>(`/block-templates/categories/${categoryId}/templates`);
 	return response.data;
 };
+
+export const createBlockTemplate = async (templateData: {
+	category_id: number;
+	template_name: string;
+	name: string;
+	settings: {
+		structure: any[];
+		editableStyles: Record<string, any>;
+		editableElements: string[];
+		javascript?: string;
+	};
+	default_data: Record<string, any>;
+	preview_url: string;
+}): Promise<BlockTemplate> => {
+	const response = await apiClient.post<BlockTemplate>('/block-templates', templateData);
+	return response.data;
+};
